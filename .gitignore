@@ -49,3 +49,6 @@ prisma/migrations/
 tmp/
 temp/
 
+
+.cursorrules
+
