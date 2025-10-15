@@ -1,0 +1,40 @@
+// 审计日志数据模型
+// 将这些模型添加到 schema.prisma 中
+
+model AuditLog {
+  id           String    @id @default(cuid())
+  userId       String?              // 操作用户ID
+  action       String               // 操作类型: CREATE, UPDATE, DELETE, LOGIN, etc.
+  resource     String               // 资源类型: User, Question, Exam, etc.
+  resourceId   String?              // 资源ID
+  method       String?              // HTTP方法: GET, POST, PUT, DELETE
+  path         String?              // 请求路径
+  ip           String?              // 客户端IP
+  userAgent    String?              // 用户代理
+  requestId    String?              // 请求ID（用于追踪）
+  status       String               // 状态: success, failure
+  errorMessage String?              // 错误信息
+  changes      Json?                // 变更内容（before/after）
+  metadata     Json?                // 额外元数据
+  duration     Int?                 // 操作耗时（毫秒）
+  createdAt    DateTime  @default(now())
+
+  // 关系
+  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
+  @@index([requestId])
+  @@map("audit_logs")
+}
+
+// 更新 User 模型
+model User {
+  // ... 现有字段
+  auditLogs    AuditLog[]
+}
+
+
+

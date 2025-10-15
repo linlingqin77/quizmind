@@ -1,0 +1,36 @@
+{
+  "name": "ai-exam-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI智能题库系统 - Monorepo架构",
+  "scripts": {
+    "dev": "pnpm --parallel --filter ./packages/* dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "dev:server": "pnpm --filter server dev",
+    "build": "pnpm --filter ./packages/* build",
+    "build:frontend": "pnpm --filter frontend build",
+    "build:server": "pnpm --filter server build",
+    "lint": "pnpm --filter ./packages/* lint",
+    "test": "pnpm --filter ./packages/* test",
+    "clean": "pnpm --filter ./packages/* clean && rm -rf node_modules"
+  },
+  "keywords": [
+    "monorepo",
+    "pnpm",
+    "nestjs",
+    "vue3",
+    "trpc",
+    "prisma"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3",
+    "prettier": "^3.1.1",
+    "eslint": "^8.56.0"
+  }
+}
+

@@ -1,0 +1,319 @@
+syntax = "proto3";
+
+package practice;
+
+// 练习服务
+service PracticeService {
+  // 练习会话管理
+  rpc CreateSession(CreateSessionRequest) returns (SessionResponse);
+  rpc GetSession(GetSessionRequest) returns (SessionResponse);
+  rpc UpdateProgress(UpdateProgressRequest) returns (SessionResponse);
+  rpc CompleteSession(CompleteSessionRequest) returns (SessionResponse);
+  
+  // 6种练习模式
+  rpc StartSequentialPractice(StartPracticeRequest) returns (SessionResponse);
+  rpc StartRandomPractice(StartPracticeRequest) returns (SessionResponse);
+  rpc StartSpecializedPractice(SpecializedPracticeRequest) returns (SessionResponse);
+  rpc StartTypePractice(TypePracticeRequest) returns (SessionResponse);
+  rpc StartFrequentErrorPractice(FrequentErrorRequest) returns (SessionResponse);
+  rpc StartChapterPractice(ChapterPracticeRequest) returns (SessionResponse);
+  
+  // 背题模式
+  rpc StartMemorizeMode(MemorizeRequest) returns (MemorizeResponse);
+  rpc MarkAsMastered(MarkMasteredRequest) returns (MarkMasteredResponse);
+  
+  // 错题本管理
+  rpc AddToWrongQuestions(AddWrongQuestionRequest) returns (WrongQuestionResponse);
+  rpc GetWrongQuestions(GetWrongQuestionsRequest) returns (WrongQuestionListResponse);
+  rpc RemoveFromWrongQuestions(RemoveWrongQuestionRequest) returns (RemoveResponse);
+  rpc GetWrongQuestionStats(WrongQuestionStatsRequest) returns (WrongQuestionStatsResponse);
+  
+  // 收藏夹管理
+  rpc CreateCollection(CreateCollectionRequest) returns (CollectionResponse);
+  rpc AddToCollection(AddToCollectionRequest) returns (CollectionResponse);
+  rpc RemoveFromCollection(RemoveFromCollectionRequest) returns (RemoveResponse);
+  rpc GetCollections(GetCollectionsRequest) returns (CollectionListResponse);
+  
+  // 练习记录
+  rpc GetPracticeHistory(PracticeHistoryRequest) returns (PracticeHistoryResponse);
+  rpc GetPracticeStats(PracticeStatsRequest) returns (PracticeStatsResponse);
+}
+
+// ==================== 练习会话 ====================
+
+message CreateSessionRequest {
+  string userId = 1;
+  string mode = 2; // 'sequential' | 'random' | 'specialized' | 'type' | 'frequent_error' | 'chapter'
+  string categoryId = 3;
+  repeated string questionIds = 4;
+}
+
+message GetSessionRequest {
+  string sessionId = 1;
+}
+
+message UpdateProgressRequest {
+  string sessionId = 1;
+  string questionId = 2;
+  string userAnswer = 3;
+  bool isCorrect = 4;
+  int32 timeSpent = 5; // 秒
+}
+
+message CompleteSessionRequest {
+  string sessionId = 1;
+}
+
+message SessionResponse {
+  string id = 1;
+  string userId = 2;
+  string mode = 3;
+  int32 totalQuestions = 4;
+  int32 answeredQuestions = 5;
+  int32 correctCount = 6;
+  double correctRate = 7;
+  int32 totalTimeSpent = 8;
+  string status = 9; // 'active' | 'completed' | 'paused'
+  repeated QuestionProgress questions = 10;
+  string createdAt = 11;
+  string completedAt = 12;
+}
+
+message QuestionProgress {
+  string questionId = 1;
+  string userAnswer = 2;
+  bool isCorrect = 3;
+  int32 timeSpent = 4;
+  bool isAnswered = 5;
+}
+
+// ==================== 6种练习模式 ====================
+
+message StartPracticeRequest {
+  string userId = 1;
+  string categoryId = 2;
+  int32 limit = 3; // 题目数量限制
+}
+
+message SpecializedPracticeRequest {
+  string userId = 1;
+  repeated string knowledgePointIds = 2;
+  int32 limit = 3;
+}
+
+message TypePracticeRequest {
+  string userId = 1;
+  string categoryId = 2;
+  string questionType = 3; // 'single' | 'multiple' | 'judge' | 'fill' | 'essay'
+  int32 limit = 4;
+}
+
+message FrequentErrorRequest {
+  string userId = 1;
+  string categoryId = 2;
+  int32 minErrorCount = 3; // 最小错误次数
+  int32 limit = 4;
+}
+
+message ChapterPracticeRequest {
+  string userId = 1;
+  string chapterId = 2;
+  int32 limit = 3;
+}
+
+// ==================== 背题模式 ====================
+
+message MemorizeRequest {
+  string userId = 1;
+  string categoryId = 2;
+  bool showAnswer = 3; // 是否显示答案
+  int32 autoFlipInterval = 4; // 自动翻页间隔（秒）
+  bool skipMastered = 5; // 是否跳过已掌握的题目
+}
+
+message MemorizeResponse {
+  string sessionId = 1;
+  repeated MemorizeQuestion questions = 2;
+}
+
+message MemorizeQuestion {
+  string questionId = 1;
+  string content = 2;
+  string answer = 3;
+  string explanation = 4;
+  bool isMastered = 5;
+}
+
+message MarkMasteredRequest {
+  string userId = 1;
+  string questionId = 2;
+  bool isMastered = 3;
+}
+
+message MarkMasteredResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// ==================== 错题本 ====================
+
+message AddWrongQuestionRequest {
+  string userId = 1;
+  string questionId = 2;
+  string userAnswer = 3;
+  string correctAnswer = 4;
+  string errorReason = 5; // 'misunderstanding' | 'knowledge_gap' | 'careless' | 'other'
+}
+
+message GetWrongQuestionsRequest {
+  string userId = 1;
+  string categoryId = 2;
+  string knowledgePointId = 3;
+  int32 page = 4;
+  int32 limit = 5;
+}
+
+message WrongQuestionResponse {
+  string id = 1;
+  string userId = 2;
+  string questionId = 3;
+  int32 errorCount = 4;
+  string lastErrorReason = 5;
+  string createdAt = 6;
+  string lastPracticedAt = 7;
+}
+
+message WrongQuestionListResponse {
+  repeated WrongQuestionResponse wrongQuestions = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message RemoveWrongQuestionRequest {
+  string userId = 1;
+  string questionId = 2;
+}
+
+message RemoveResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message WrongQuestionStatsRequest {
+  string userId = 1;
+  string categoryId = 2;
+}
+
+message WrongQuestionStatsResponse {
+  int32 totalCount = 1;
+  repeated KnowledgePointStats knowledgePointStats = 2;
+  repeated QuestionTypeStats typeStats = 3;
+  repeated ErrorReasonStats reasonStats = 4;
+}
+
+message KnowledgePointStats {
+  string knowledgePointId = 1;
+  string knowledgePointName = 2;
+  int32 count = 3;
+}
+
+message QuestionTypeStats {
+  string type = 1;
+  int32 count = 2;
+}
+
+message ErrorReasonStats {
+  string reason = 1;
+  int32 count = 2;
+}
+
+// ==================== 收藏夹 ====================
+
+message CreateCollectionRequest {
+  string userId = 1;
+  string name = 2;
+  string description = 3;
+  repeated string tags = 4;
+}
+
+message AddToCollectionRequest {
+  string collectionId = 1;
+  repeated string questionIds = 2;
+}
+
+message RemoveFromCollectionRequest {
+  string collectionId = 1;
+  repeated string questionIds = 2;
+}
+
+message GetCollectionsRequest {
+  string userId = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+message CollectionResponse {
+  string id = 1;
+  string userId = 2;
+  string name = 3;
+  string description = 4;
+  repeated string tags = 5;
+  int32 questionCount = 6;
+  string createdAt = 7;
+  string updatedAt = 8;
+}
+
+message CollectionListResponse {
+  repeated CollectionResponse collections = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+// ==================== 练习记录 ====================
+
+message PracticeHistoryRequest {
+  string userId = 1;
+  string categoryId = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message PracticeHistoryResponse {
+  repeated SessionResponse sessions = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message PracticeStatsRequest {
+  string userId = 1;
+  string categoryId = 2;
+  string startDate = 3;
+  string endDate = 4;
+}
+
+message PracticeStatsResponse {
+  int32 totalSessions = 1;
+  int32 totalQuestions = 2;
+  int32 totalCorrect = 3;
+  double overallCorrectRate = 4;
+  int32 totalTimeSpent = 5;
+  repeated DailyStats dailyStats = 6;
+  repeated ModeStats modeStats = 7;
+}
+
+message DailyStats {
+  string date = 1;
+  int32 sessionCount = 2;
+  int32 questionCount = 3;
+  double correctRate = 4;
+}
+
+message ModeStats {
+  string mode = 1;
+  int32 sessionCount = 2;
+  double averageCorrectRate = 3;
+}
+

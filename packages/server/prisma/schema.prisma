@@ -1,0 +1,437 @@
+// Prisma Schema for AI Quiz System
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 用户表
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  password  String   // bcrypt加密后的密码
+  avatar    String?
+  role      UserRole @default(STUDENT)
+  
+  // RBAC 角色关系
+  roleId    String?
+  rbacRole  Role?    @relation(fields: [roleId], references: [id])
+  
+  // 自定义权限（覆盖角色权限）
+  customPermissions UserPermission[]
+  
+  // 个人信息
+  nickname  String?
+  phone     String?  @unique
+  bio       String?
+  
+  // 状态
+  isActive  Boolean  @default(true)
+  isVerified Boolean @default(false)
+  
+  // 时间戳
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastLoginAt DateTime?
+  
+  // 关联关系
+  examRecords    ExamRecord[]
+  practiceRecords PracticeRecord[]
+  wrongQuestions WrongQuestion[]
+  favorites      Favorite[]
+  notes          Note[]
+  auditLogs      AuditLog[]
+  fileUploads    FileUpload[]
+  
+  @@map("users")
+}
+
+// 角色枚举 (保留兼容性)
+enum UserRole {
+  STUDENT   // 学员
+  TEACHER   // 老师
+  ADMIN     // 管理员
+}
+
+// RBAC 角色表
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique  // ADMIN, TEACHER, STUDENT
+  displayName String            // 显示名称
+  description String?           // 角色描述
+  isSystem    Boolean  @default(false)  // 是否系统角色（不可删除）
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 关系
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+// 权限表
+model Permission {
+  id          String   @id @default(cuid())
+  resource    String            // 资源名称: user, question, exam
+  action      String            // 操作: create, read, update, delete
+  description String?           // 权限描述
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 关系
+  roles       RolePermission[]
+  users       UserPermission[]
+
+  @@unique([resource, action])
+  @@map("permissions")
+}
+
+// 角色权限关联表
+model RolePermission {
+  id           String     @id @default(cuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime   @default(now())
+
+  // 关系
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// 用户自定义权限表
+model UserPermission {
+  id           String     @id @default(cuid())
+  userId       String
+  permissionId String
+  granted      Boolean    @default(true)  // true=授予, false=撤销
+  createdAt    DateTime   @default(now())
+
+  // 关系
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permissionId])
+  @@map("user_permissions")
+}
+
+// 考试记录
+model ExamRecord {
+  id          String   @id @default(cuid())
+  userId      String
+  examId      String
+  score       Float
+  totalScore  Float
+  status      ExamStatus
+  startTime   DateTime
+  endTime     DateTime?
+  answers     Json     // 存储答题记录
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exam        Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("exam_records")
+}
+
+// 练习记录
+model PracticeRecord {
+  id          String   @id @default(cuid())
+  userId      String
+  mode        String   // 练习模式
+  questionIds String[] // 题目ID列表
+  answers     Json     // 答题记录
+  score       Float?
+  duration    Int?     // 用时（秒）
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("practice_records")
+}
+
+// 考试
+model Exam {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  duration    Int      // 时长（分钟）
+  totalScore  Float
+  startTime   DateTime
+  endTime     DateTime
+  status      ExamStatus @default(DRAFT)
+  
+  paperId     String
+  paper       Paper    @relation(fields: [paperId], references: [id])
+  
+  records     ExamRecord[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("exams")
+}
+
+// 试卷
+model Paper {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  totalScore  Float
+  
+  questions   PaperQuestion[]
+  exams       Exam[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("papers")
+}
+
+// 试卷题目关联
+model PaperQuestion {
+  id          String   @id @default(cuid())
+  paperId     String
+  questionId  String
+  order       Int
+  score       Float
+  
+  paper       Paper    @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  @@unique([paperId, questionId])
+  @@map("paper_questions")
+}
+
+// 题目
+model Question {
+  id          String   @id @default(cuid())
+  type        QuestionType
+  title       String
+  content     String   @db.Text
+  options     Json?    // 选项（选择题）
+  answer      Json     // 正确答案
+  explanation String?  @db.Text
+  difficulty  Difficulty @default(MEDIUM)
+  
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  
+  tags        String[]
+  
+  papers      PaperQuestion[]
+  wrongQuestions WrongQuestion[]
+  favorites   Favorite[]
+  notes       Note[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("questions")
+}
+
+// 题目分类
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  parentId    String?
+  
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Category[] @relation("CategoryTree")
+  questions   Question[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("categories")
+}
+
+// 错题
+model WrongQuestion {
+  id          String   @id @default(cuid())
+  userId      String
+  questionId  String
+  wrongCount  Int      @default(1)
+  lastWrongAt DateTime @default(now())
+  mastered    Boolean  @default(false)
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, questionId])
+  @@map("wrong_questions")
+}
+
+// 收藏
+model Favorite {
+  id          String   @id @default(cuid())
+  userId      String
+  questionId  String
+  tags        String[]
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  
+  @@unique([userId, questionId])
+  @@map("favorites")
+}
+
+// 笔记
+model Note {
+  id          String   @id @default(cuid())
+  userId      String
+  questionId  String
+  content     String   @db.Text
+  tags        String[]
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("notes")
+}
+
+// 枚举定义
+enum ExamStatus {
+  DRAFT       // 草稿
+  PUBLISHED   // 已发布
+  IN_PROGRESS // 进行中
+  COMPLETED   // 已完成
+  CANCELLED   // 已取消
+}
+
+enum QuestionType {
+  SINGLE_CHOICE   // 单选题
+  MULTIPLE_CHOICE // 多选题
+  TRUE_FALSE      // 判断题
+  FILL_BLANK      // 填空题
+  SHORT_ANSWER    // 简答题
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+// 审计日志
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?  // 操作用户ID，可为空（系统操作）
+  action      String   // 操作类型：CREATE, UPDATE, DELETE, LOGIN, LOGOUT
+  resource    String   // 资源类型：USER, QUESTION, EXAM, etc.
+  resourceId  String?  // 资源ID
+  details     Json?    // 操作详情
+  ipAddress   String?  // IP地址
+  userAgent   String?  // 用户代理
+  timestamp   DateTime @default(now())
+  
+  // 关系
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([timestamp])
+  @@map("audit_logs")
+}
+
+// 文件上传
+model FileUpload {
+  id          String   @id @default(cuid())
+  filename    String   // 原始文件名
+  storedName  String   // 存储文件名
+  mimeType    String   // MIME类型
+  size        Int      // 文件大小（字节）
+  path        String   // 存储路径
+  url         String?  // 访问URL
+  uploaderId  String?  // 上传者ID
+  category    String?  // 文件分类：avatar, document, image, etc.
+  isPublic    Boolean  @default(false) // 是否公开访问
+  
+  // 元数据
+  metadata    Json?    // 额外元数据（图片尺寸等）
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // 关系
+  uploader    User?    @relation(fields: [uploaderId], references: [id], onDelete: SetNull)
+  
+  @@index([uploaderId])
+  @@index([category])
+  @@index([createdAt])
+  @@map("file_uploads")
+}
+
+// 邮件日志
+model EmailLog {
+  id          String   @id @default(cuid())
+  to          String   // 收件人
+  from        String   // 发件人
+  subject     String   // 主题
+  template    String?  // 模板名称
+  variables   Json?    // 模板变量
+  status      EmailStatus @default(PENDING) // 发送状态
+  error       String?  // 错误信息
+  sentAt      DateTime?
+  createdAt   DateTime @default(now())
+  
+  @@index([to])
+  @@index([status])
+  @@index([createdAt])
+  @@map("email_logs")
+}
+
+// 任务队列
+model JobQueue {
+  id          String   @id @default(cuid())
+  name        String   // 任务名称
+  data        Json     // 任务数据
+  priority    Int      @default(0) // 优先级
+  attempts    Int      @default(0) // 尝试次数
+  maxAttempts Int      @default(3) // 最大尝试次数
+  status      JobStatus @default(WAITING) // 任务状态
+  error       String?  // 错误信息
+  processedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+  @@map("job_queue")
+}
+
+// 新增枚举
+enum EmailStatus {
+  PENDING   // 待发送
+  SENT      // 已发送
+  FAILED    // 发送失败
+  BOUNCED   // 退回
+}
+
+enum JobStatus {
+  WAITING    // 等待中
+  ACTIVE     // 执行中
+  COMPLETED  // 已完成
+  FAILED     // 失败
+  DELAYED    // 延迟
+  PAUSED     // 暂停
+}

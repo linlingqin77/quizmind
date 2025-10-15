@@ -1,0 +1,702 @@
+# AI Quiz System - Cursor Rules
+
+## 项目概述
+这是一个企业级的 AI 智能题库学习系统，采用 NestJS + React + TypeScript 技术栈，包含完整的 RBAC 权限系统、审计日志、文件上传、邮件服务和消息队列等企业级功能。
+
+## 技术栈
+- **服务端**: NestJS, TypeScript, Prisma ORM, PostgreSQL
+- **前端**: React, TypeScript, React Native (移动端)
+- **数据库**: PostgreSQL
+- **认证**: JWT + Passport
+- **企业功能**: RBAC权限、审计日志、文件上传、邮件服务、消息队列
+
+## 代码规范
+
+### TypeScript 规范
+- 使用严格的 TypeScript 配置
+- 所有函数和方法必须有明确的返回类型
+- 使用接口定义数据结构，避免 any 类型
+- 优先使用 type 而不是 interface（除非需要继承）
+- 使用枚举定义常量集合
+
+### NestJS 服务端规范
+- 使用装饰器模式：@Controller, @Service, @Injectable
+- 遵循模块化架构，每个功能一个模块
+- 使用 DTO 进行数据验证和转换
+- 实现全局异常过滤器和拦截器
+- 使用 Prisma 进行数据库操作，避免原生 SQL
+
+### 文件命名规范
+- 控制器: `*.controller.ts`
+- 服务: `*.service.ts`
+- 模块: `*.module.ts`
+- DTO: `*.dto.ts`
+- 实体: `*.entity.ts`
+- 守卫: `*.guard.ts`
+- 拦截器: `*.interceptor.ts`
+- 装饰器: `*.decorator.ts`
+
+### 目录结构
+```
+src/
+├── core/                      # 核心框架
+│   ├── config/               # 配置
+│   ├── database/             # 数据库
+│   ├── logging/              # 日志
+│   ├── monitoring/           # 监控
+│   ├── security/             # 安全
+│   └── trpc/                 # tRPC 核心
+│
+├── infrastructure/           # 基础设施模块
+│   ├── prisma/              # 数据库服务
+│   ├── health/              # 健康检查
+│   ├── metrics/             # 监控指标
+│   ├── trpc/                # tRPC 基础
+│   └── websocket/           # WebSocket
+│
+├── features/                 # 业务功能模块
+│   ├── auth/                # 认证授权
+│   ├── users/               # 用户管理
+│   ├── exams/               # 考试管理
+│   ├── questions/           # 题目管理
+│   └── practice/            # 练习系统
+│
+├── enterprise/              # 企业级功能
+│   ├── audit/              # 审计日志
+│   ├── permissions/        # 权限管理
+│   ├── email/              # 邮件服务
+│   ├── upload/             # 文件上传
+│   └── queue/              # 消息队列
+│
+├── shared/                  # 共享组件
+│   ├── decorators/         # 装饰器
+│   ├── guards/             # 守卫
+│   ├── interceptors/       # 拦截器
+│   ├── filters/            # 过滤器
+│   └── services/           # 共享服务
+│
+└── presentation/           # 表现层
+    └── routers/            # tRPC 路由
+```
+
+## 开发指导
+
+### 模块分类规则
+
+#### Infrastructure（基础设施）
+放置通用的、与业务无关的技术模块：
+- 数据库连接（Prisma、TypeORM）
+- 缓存服务（Redis）
+- 健康检查、监控、日志
+- WebSocket、GraphQL、gRPC
+- 消息中间件基础设施
+
+#### Features（业务功能）
+放置核心业务逻辑模块：
+- 用户管理（auth、users）
+- 题库管理（exams、questions）
+- 练习系统（practice、progress）
+- 数据分析（analytics）
+- 使用 tRPC Router（不是 Controller）
+
+#### Enterprise（企业功能）
+放置企业级增强功能：
+- 权限管理（RBAC）
+- 审计日志
+- 邮件服务
+- 文件上传
+- 消息队列业务
+- 工作流引擎
+
+### 创建新的业务模块时
+
+#### tRPC 模块（推荐，用于业务功能）
+```
+features/moduleName/
+├── schemas/                    # Zod 验证
+│   ├── create-xxx.schema.ts
+│   └── update-xxx.schema.ts
+├── moduleName.router.ts       # tRPC 路由
+├── moduleName.service.ts      # 业务逻辑
+└── moduleName.module.ts       # NestJS 模块
+```
+
+#### REST 模块（特殊场景，如文件上传）
+```
+enterprise/moduleName/
+├── dto/                       # class-validator DTO
+│   └── create-xxx.dto.ts
+├── moduleName.controller.ts   # REST Controller
+├── moduleName.service.ts      # 业务逻辑
+└── moduleName.module.ts       # NestJS 模块
+```
+
+### 创建模块步骤
+1. 确定模块分类（infrastructure/features/enterprise）
+2. 创建模块目录和基础文件
+3. 定义验证 Schema（Zod）或 DTO（class-validator）
+4. 实现服务层逻辑
+5. 创建 Router（tRPC）或 Controller（REST）
+6. 添加必要的守卫和拦截器
+7. 在 app.module.ts 中注册模块
+8. 编写单元测试
+
+### 权限控制
+- 使用 `@RequirePermissions('resource:action')` 装饰器
+- 权限格式: `资源:操作` (如: `user:create`, `exam:read`)
+- 支持 `@RequireAnyPermission` 和 `@RequireAllPermissions`
+
+### 审计日志
+- 重要操作使用 `@Audit({ action: 'ACTION', resource: 'RESOURCE' })` 装饰器
+- 自动记录用户操作、IP地址、用户代理等信息
+
+### 错误处理
+- 使用 NestJS 内置异常类: `BadRequestException`, `UnauthorizedException` 等
+- 自定义业务异常继承 `HttpException`
+- 全局异常过滤器统一处理错误响应
+
+### 数据验证
+- 使用 `class-validator` 装饰器进行 DTO 验证
+- 常用装饰器: `@IsString()`, `@IsEmail()`, `@IsOptional()`, `@Transform()`
+
+### 数据库操作
+- 使用 Prisma Client 进行数据库操作
+- **不使用物理外键约束**（遵循阿里开发规范）
+- 使用应用层约束保证数据完整性
+- 避免 N+1 查询问题，使用 `include` 和 `select`
+- 使用事务处理复杂操作
+- 定期清理过期数据和孤儿数据
+
+### 数据完整性
+- 在 Service 层验证逻辑外键（一次查询，同时验证存在性和获取数据）
+- 所有外键字段都是逻辑外键，需要应用层验证
+- 使用 DataIntegrityService 提供的验证方法
+- 重要数据使用软删除而不是硬删除
+- 定期运行孤儿数据清理任务
+
+### 邮件服务
+- 使用模板引擎 (Handlebars) 创建邮件模板
+- 异步发送邮件，避免阻塞主流程
+- 记录邮件发送日志
+
+### 文件上传
+- 验证文件类型和大小
+- 生成唯一文件名避免冲突
+- 支持图片处理和缩略图生成
+- 实现文件访问权限控制
+
+### 队列系统
+- 将耗时操作放入队列异步处理
+- 实现任务重试机制
+- 监控队列状态和性能
+
+## 代码示例
+
+### 控制器示例
+```typescript
+@Controller('users')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
+
+  @Get()
+  @RequirePermissions('user:read')
+  @Audit({ action: 'LIST', resource: 'USER' })
+  async findAll(@Query() query: FindUsersDto) {
+    return this.usersService.findAll(query);
+  }
+
+  @Post()
+  @RequirePermissions('user:create')
+  @Audit({ action: 'CREATE', resource: 'USER' })
+  async create(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.create(createUserDto);
+  }
+
+  @Post('exam-records')
+  @RequirePermissions('exam:participate')
+  @Audit({ action: 'CREATE', resource: 'EXAM_RECORD' })
+  async createExamRecord(@Body() dto: CreateExamRecordDto) {
+    return this.examRecordsService.create(dto);
+  }
+}
+```
+
+### 服务示例
+```typescript
+@Injectable()
+export class UsersService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerService,
+    private readonly dataIntegrityService: DataIntegrityService,
+  ) {}
+
+  async findAll(query: FindUsersDto): Promise<PaginatedResult<User>> {
+    try {
+      const { page = 1, limit = 10, search } = query;
+      
+      const where = search ? {
+        OR: [
+          { username: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+        ],
+      } : {};
+
+      const [users, total] = await Promise.all([
+        this.prisma.user.findMany({
+          where,
+          skip: (page - 1) * limit,
+          take: limit,
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            role: true,
+            roleId: true, // 逻辑外键
+            createdAt: true,
+          },
+        }),
+        this.prisma.user.count({ where }),
+      ]);
+
+      return {
+        data: users,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+        },
+      };
+    } catch (error) {
+      this.logger.error('查询用户列表失败', error);
+      throw new InternalServerErrorException('查询用户列表失败');
+    }
+  }
+
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    // 验证逻辑外键（如果有roleId）
+    if (createUserDto.roleId) {
+      const role = await this.prisma.role.findUnique({
+        where: { id: createUserDto.roleId }
+      });
+      
+      if (!role) {
+        throw new NotFoundException(`角色不存在: ${createUserDto.roleId}`);
+      }
+    }
+
+    return this.prisma.user.create({
+      data: createUserDto,
+    });
+  }
+
+  async delete(id: string): Promise<void> {
+    // 检查是否可以安全删除
+    const { canDelete, reason } = await this.dataIntegrityService.canDeleteUser(id);
+    
+    if (!canDelete) {
+      throw new BadRequestException(reason);
+    }
+
+    // 使用软删除
+    await this.dataIntegrityService.softDeleteUser(id);
+  }
+}
+```
+
+### DTO 示例
+```typescript
+export class CreateUserDto {
+  @IsString()
+  @IsNotEmpty()
+  @Length(3, 20)
+  username: string;
+
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  @MinLength(6)
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
+    message: '密码必须包含大小写字母和数字',
+  })
+  password: string;
+
+  @IsOptional()
+  @IsString()
+  nickname?: string;
+
+  @IsOptional()
+  @IsEnum(UserRole)
+  role?: UserRole;
+}
+```
+
+## 最佳实践
+
+### 性能优化
+- 使用数据库索引优化查询
+- 实现缓存机制 (Redis)
+- 分页查询大数据集
+- 使用连接池管理数据库连接
+
+### 安全性
+- 输入验证和清理
+- SQL 注入防护 (Prisma 自动防护)
+- XSS 防护
+- CSRF 防护
+- 请求限流
+
+### 可维护性
+- 编写清晰的注释和文档
+- 使用有意义的变量和函数名
+- 保持函数简短和单一职责
+- 定期重构和优化代码
+
+### 测试
+- 编写单元测试覆盖核心业务逻辑
+- 集成测试验证模块间交互
+- E2E 测试验证完整流程
+
+## 环境配置
+- 开发环境使用 `.env.development`
+- 生产环境使用 `.env.production`
+- 敏感信息不要提交到版本控制
+- 使用环境变量验证确保配置正确
+
+## 部署注意事项
+- 使用 Docker 容器化部署
+- 配置健康检查端点
+- 实现优雅关闭
+- 配置日志聚合和监控
+- 定期备份数据库
+
+## 阿里开发规范遵循
+
+### 数据库设计规范
+- **禁止使用物理外键约束**：遵循阿里开发手册，不在数据库层面建立外键
+- **逻辑外键设计**：使用字段名 + 注释标明逻辑外键关系
+- **应用层约束**：通过应用代码保证数据完整性
+- **索引优化**：为所有逻辑外键字段建立索引
+
+### 数据完整性保障
+```typescript
+// Service 层验证（最佳实践）
+async create(dto: CreateRecordDto) {
+  // 验证并获取用户（一次查询，两个目的）
+  const user = await this.dataIntegrityService.validateAndGetUser(dto.userId, {
+    include: { role: true }
+  });
+  
+  // 验证并获取考试
+  const exam = await this.dataIntegrityService.validateAndGetExam(dto.examId);
+  
+  // 批量验证题目
+  if (dto.questionIds?.length > 0) {
+    await this.dataIntegrityService.validateQuestionsExist(dto.questionIds);
+  }
+  
+  // 业务逻辑验证
+  if (!user.isActive) {
+    throw new BadRequestException('用户账号未激活');
+  }
+  
+  if (exam.endTime && new Date() > exam.endTime) {
+    throw new BadRequestException('考试已结束');
+  }
+  
+  return this.prisma.examRecord.create({ data: dto });
+}
+
+// 删除前检查
+async delete(id: string) {
+  const { canDelete, reason } = await this.dataIntegrityService.canDeleteUser(id);
+  
+  if (!canDelete) {
+    // 软删除
+    await this.dataIntegrityService.softDeleteUser(id);
+    return { message: '用户已停用（软删除）', reason };
+  }
+  
+  // 硬删除
+  await this.prisma.user.delete({ where: { id } });
+  return { message: '用户已删除' };
+}
+```
+
+### 数据库表设计规范
+```sql
+-- ✅ 正确的设计（无物理外键）
+CREATE TABLE exam_records (
+  id VARCHAR(25) PRIMARY KEY,
+  user_id VARCHAR(25) NOT NULL COMMENT '逻辑外键，指向 users.id',
+  exam_id VARCHAR(25) NOT NULL COMMENT '逻辑外键，指向 exams.id',
+  score DECIMAL(5,2),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  -- 为逻辑外键建立索引
+  INDEX idx_exam_records_user_id (user_id),
+  INDEX idx_exam_records_exam_id (exam_id),
+  INDEX idx_exam_records_created_at (created_at)
+);
+
+-- ❌ 错误的设计（使用物理外键）
+CREATE TABLE exam_records (
+  id VARCHAR(25) PRIMARY KEY,
+  user_id VARCHAR(25) NOT NULL,
+  exam_id VARCHAR(25) NOT NULL,
+  
+  -- 不要使用物理外键约束
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (exam_id) REFERENCES exams(id)
+);
+```
+
+### Prisma Schema 规范
+```prisma
+// ✅ 正确的 Prisma 模型定义
+model ExamRecord {
+  id          String   @id @default(cuid())
+  userId      String   // 逻辑外键，指向 User.id
+  examId      String   // 逻辑外键，指向 Exam.id
+  score       Float
+  createdAt   DateTime @default(now())
+  
+  // 不定义 @relation，避免生成物理外键
+  // user        User     @relation(fields: [userId], references: [id]) ❌
+  // exam        Exam     @relation(fields: [examId], references: [id]) ❌
+  
+  @@index([userId])
+  @@index([examId])
+  @@index([createdAt])
+  @@map("exam_records")
+}
+```
+
+### 数据查询规范
+```typescript
+// ✅ 手动 JOIN 查询（推荐）
+async getExamRecordsWithDetails(userId: string) {
+  const records = await this.prisma.examRecord.findMany({
+    where: { userId },
+  });
+  
+  // 手动获取关联数据
+  const userIds = [...new Set(records.map(r => r.userId))];
+  const examIds = [...new Set(records.map(r => r.examId))];
+  
+  const [users, exams] = await Promise.all([
+    this.prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, username: true, email: true },
+    }),
+    this.prisma.exam.findMany({
+      where: { id: { in: examIds } },
+      select: { id: true, title: true, duration: true },
+    }),
+  ]);
+  
+  // 组装数据
+  return records.map(record => ({
+    ...record,
+    user: users.find(u => u.id === record.userId),
+    exam: exams.find(e => e.id === record.examId),
+  }));
+}
+
+// ❌ 避免使用 Prisma 关系查询
+async getExamRecordsWithDetails(userId: string) {
+  return this.prisma.examRecord.findMany({
+    where: { userId },
+    include: {
+      user: true,  // ❌ 依赖物理外键
+      exam: true,  // ❌ 依赖物理外键
+    },
+  });
+}
+```
+
+### 数据完整性维护
+```typescript
+// 定期清理孤儿数据
+@Cron('0 2 * * *') // 每天凌晨2点执行
+async cleanupOrphanedData() {
+  const result = await this.dataIntegrityService.cleanupOrphanedData();
+  this.logger.log('孤儿数据清理完成', result);
+}
+
+// 数据迁移时的完整性检查
+async migrateData() {
+  // 1. 检查数据完整性
+  await this.validateDataIntegrity();
+  
+  // 2. 执行迁移
+  await this.performMigration();
+  
+  // 3. 再次检查完整性
+  await this.validateDataIntegrity();
+}
+```
+
+### 软删除规范
+```typescript
+// ✅ 推荐：软删除重要数据
+async deleteUser(id: string) {
+  // 检查是否可以删除
+  const { canDelete, reason } = await this.dataIntegrityService.canDeleteUser(id);
+  
+  if (!canDelete) {
+    // 使用软删除
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        isActive: false,
+        deletedAt: new Date(),
+        email: `deleted_${Date.now()}_${id}@deleted.com`, // 避免唯一约束冲突
+        username: `deleted_${Date.now()}_${id}`,
+      },
+    });
+  } else {
+    // 真正删除
+    await this.prisma.user.delete({ where: { id } });
+  }
+}
+
+// 查询时过滤软删除数据
+async findActiveUsers() {
+  return this.prisma.user.findMany({
+    where: { 
+      isActive: true,
+      deletedAt: null,
+    },
+  });
+}
+```
+
+### 性能优化规范
+```typescript
+// ✅ 批量验证，避免 N+1 查询
+async validateQuestionsExist(questionIds: string[]) {
+  if (!questionIds?.length) return true;
+  
+  const questions = await this.prisma.question.findMany({
+    where: { id: { in: questionIds } },
+    select: { id: true },
+  });
+  
+  const existingIds = questions.map(q => q.id);
+  const missingIds = questionIds.filter(id => !existingIds.includes(id));
+  
+  if (missingIds.length > 0) {
+    throw new BadRequestException(`题目不存在: ${missingIds.join(', ')}`);
+  }
+  
+  return true;
+}
+
+// ✅ 使用缓存减少重复验证
+@Injectable()
+export class CachedValidationService {
+  async validateUserExists(userId: string) {
+    const cacheKey = `user_exists:${userId}`;
+    let exists = await this.cacheManager.get<boolean>(cacheKey);
+    
+    if (exists === undefined) {
+      exists = await this.dataIntegrityService.validateUserExists(userId);
+      await this.cacheManager.set(cacheKey, exists, 300); // 缓存5分钟
+    }
+    
+    return exists;
+  }
+}
+```
+
+### 错误处理规范
+```typescript
+// ✅ 清晰的错误信息
+async validateReferences(data: any) {
+  try {
+    if (data.userId) {
+      await this.validateUserExists(data.userId);
+    }
+    if (data.examId) {
+      await this.validateExamExists(data.examId);
+    }
+  } catch (error) {
+    if (error.message.includes('不存在')) {
+      throw new BadRequestException(`数据引用错误: ${error.message}`);
+    }
+    throw new InternalServerErrorException('数据验证失败');
+  }
+}
+
+// 记录完整性违规
+async logIntegrityViolation(violation: IntegrityViolation) {
+  await this.auditService.log({
+    action: 'INTEGRITY_VIOLATION',
+    resource: 'DATA',
+    details: violation,
+  });
+}
+```
+
+### 监控和告警
+```typescript
+// 数据完整性监控
+@Cron('0 */6 * * *') // 每6小时检查一次
+async monitorDataIntegrity() {
+  const violations = await this.checkDataIntegrity();
+  
+  if (violations.length > 0) {
+    // 发送告警
+    await this.alertService.sendAlert({
+      type: 'DATA_INTEGRITY_VIOLATION',
+      violations,
+      severity: 'HIGH',
+    });
+  }
+}
+
+// 性能监控
+async trackValidationPerformance() {
+  const startTime = Date.now();
+  
+  try {
+    await this.performValidation();
+  } finally {
+    const duration = Date.now() - startTime;
+    this.metricsService.recordValidationTime(duration);
+  }
+}
+```
+
+## 开发流程规范
+
+### 1. 新增表时
+1. 设计表结构，不使用物理外键
+2. 为逻辑外键字段添加索引
+3. 在注释中标明逻辑外键关系
+4. 实现相应的数据完整性验证
+
+### 2. 新增接口时
+1. 在 Service 层使用 `DataIntegrityService` 验证逻辑外键
+2. 一次查询同时完成存在性验证和获取数据
+3. 实现软删除逻辑（如适用）
+4. 添加相应的测试用例
+
+### 3. 数据迁移时
+1. 备份原始数据
+2. 检查数据完整性
+3. 执行迁移脚本
+4. 验证迁移结果
+5. 清理孤儿数据
+
+### 4. 性能优化时
+1. 分析慢查询日志
+2. 优化索引策略
+3. 实现查询缓存
+4. 监控性能指标
+
+记住：始终优先考虑代码的可读性、可维护性和安全性。遵循 SOLID 原则和 DRY 原则。严格遵循阿里开发规范，不使用物理外键，通过应用层保证数据完整性。

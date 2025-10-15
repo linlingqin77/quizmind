@@ -1,0 +1,180 @@
+syntax = "proto3";
+
+package user;
+
+// 用户服务
+service UserService {
+  // 用户管理
+  rpc FindById(FindByIdRequest) returns (UserResponse);
+  rpc FindByEmail(FindByEmailRequest) returns (UserResponse);
+  rpc FindMany(FindManyRequest) returns (UserListResponse);
+  rpc Create(CreateUserRequest) returns (UserResponse);
+  rpc Update(UpdateUserRequest) returns (UserResponse);
+  rpc Delete(DeleteRequest) returns (DeleteResponse);
+  
+  // 认证授权
+  rpc ValidateCredentials(ValidateCredentialsRequest) returns (AuthResponse);
+  rpc ValidateToken(ValidateTokenRequest) returns (TokenValidationResponse);
+  rpc RefreshToken(RefreshTokenRequest) returns (AuthResponse);
+  
+  // 角色权限
+  rpc AssignRole(AssignRoleRequest) returns (UserResponse);
+  rpc GetUserPermissions(GetPermissionsRequest) returns (PermissionsResponse);
+  rpc CheckPermission(CheckPermissionRequest) returns (PermissionCheckResponse);
+  
+  // 组织架构
+  rpc GetUserOrganization(GetOrganizationRequest) returns (OrganizationResponse);
+  rpc UpdateUserDepartment(UpdateDepartmentRequest) returns (UserResponse);
+}
+
+// 通用请求
+message FindByIdRequest {
+  string id = 1;
+}
+
+message FindByEmailRequest {
+  string email = 1;
+}
+
+message FindManyRequest {
+  int32 page = 1;
+  int32 limit = 2;
+  string search = 3;
+  string role = 4;
+  string organizationId = 5;
+  string departmentId = 6;
+}
+
+message DeleteRequest {
+  string id = 1;
+}
+
+// 用户相关请求
+message CreateUserRequest {
+  string username = 1;
+  string email = 2;
+  string password = 3;
+  string nickname = 4;
+  string phone = 5;
+  string avatar = 6;
+  string roleId = 7;
+  string organizationId = 8;
+  string departmentId = 9;
+}
+
+message UpdateUserRequest {
+  string id = 1;
+  optional string username = 2;
+  optional string email = 3;
+  optional string nickname = 4;
+  optional string phone = 5;
+  optional string avatar = 6;
+  optional string roleId = 7;
+  optional string departmentId = 8;
+  optional bool isActive = 9;
+}
+
+// 认证相关请求
+message ValidateCredentialsRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message ValidateTokenRequest {
+  string token = 1;
+}
+
+message RefreshTokenRequest {
+  string refreshToken = 1;
+}
+
+// 权限相关请求
+message AssignRoleRequest {
+  string userId = 1;
+  string roleId = 2;
+}
+
+message GetPermissionsRequest {
+  string userId = 1;
+}
+
+message CheckPermissionRequest {
+  string userId = 1;
+  string permission = 2;
+}
+
+// 组织相关请求
+message GetOrganizationRequest {
+  string userId = 1;
+}
+
+message UpdateDepartmentRequest {
+  string userId = 1;
+  string departmentId = 2;
+}
+
+// 响应消息
+message UserResponse {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  string nickname = 4;
+  string phone = 5;
+  string avatar = 6;
+  string roleId = 7;
+  string roleName = 8;
+  string organizationId = 9;
+  string organizationName = 10;
+  string departmentId = 11;
+  string departmentName = 12;
+  bool isActive = 13;
+  string createdAt = 14;
+  string updatedAt = 15;
+}
+
+message UserListResponse {
+  repeated UserResponse users = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message AuthResponse {
+  string accessToken = 1;
+  string refreshToken = 2;
+  UserResponse user = 3;
+}
+
+message TokenValidationResponse {
+  bool isValid = 1;
+  string userId = 2;
+  string email = 3;
+  string role = 4;
+}
+
+message PermissionsResponse {
+  repeated string permissions = 1;
+}
+
+message PermissionCheckResponse {
+  bool hasPermission = 1;
+}
+
+message OrganizationResponse {
+  string id = 1;
+  string name = 2;
+  string code = 3;
+  DepartmentInfo department = 4;
+}
+
+message DepartmentInfo {
+  string id = 1;
+  string name = 2;
+  string code = 3;
+  string parentId = 4;
+}
+
+message DeleteResponse {
+  bool success = 1;
+  string message = 2;
+}

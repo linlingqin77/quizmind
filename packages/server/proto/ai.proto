@@ -1,0 +1,287 @@
+syntax = "proto3";
+
+package ai;
+
+// AI服务
+service AIService {
+  // AI主观题批改
+  rpc GradeEssay(GradeEssayRequest) returns (GradeEssayResponse);
+  rpc BatchGradeEssays(BatchGradeRequest) returns (BatchGradeResponse);
+  
+  // AI智能出题
+  rpc GenerateQuestion(GenerateQuestionRequest) returns (QuestionResponse);
+  rpc GenerateQuestionsByKnowledge(GenerateByKnowledgeRequest) returns (QuestionListResponse);
+  
+  // AI资料解析
+  rpc ParseDocument(ParseDocumentRequest) returns (ParseDocumentResponse);
+  rpc GenerateQuestionsFromDocument(GenerateFromDocRequest) returns (QuestionListResponse);
+  
+  // AI对话答疑
+  rpc Chat(ChatRequest) returns (ChatResponse);
+  rpc StreamChat(ChatRequest) returns (stream ChatStreamResponse);
+  
+  // AI学习路径推荐
+  rpc RecommendLearningPath(RecommendPathRequest) returns (LearningPathResponse);
+  rpc RecommendQuestions(RecommendQuestionsRequest) returns (QuestionListResponse);
+  
+  // AI错题分析
+  rpc AnalyzeWrongQuestions(AnalyzeWrongRequest) returns (AnalysisResponse);
+  rpc DiagnoseKnowledge(DiagnoseRequest) returns (DiagnosisResponse);
+  
+  // AI智能组卷
+  rpc SmartComposePaper(ComposeRequest) returns (PaperResponse);
+}
+
+// ==================== AI主观题批改 ====================
+
+message GradeEssayRequest {
+  string questionId = 1;
+  string studentAnswer = 2;
+  string standardAnswer = 3;
+  string gradingCriteria = 4;
+  int32 totalScore = 5;
+  string questionType = 6; // 'essay' | 'case_analysis'
+}
+
+message GradeEssayResponse {
+  string id = 1;
+  int32 score = 2;
+  repeated ScorePoint scorePoints = 3;
+  string comment = 4;
+  string suggestion = 5;
+  double confidence = 6; // AI批改置信度 0-1
+  bool needsHumanReview = 7; // 是否需要人工复核
+}
+
+message ScorePoint {
+  string point = 1;
+  int32 score = 2;
+  int32 maxScore = 3;
+  string reason = 4;
+}
+
+message BatchGradeRequest {
+  repeated GradeEssayRequest requests = 1;
+}
+
+message BatchGradeResponse {
+  repeated GradeEssayResponse results = 1;
+  int32 totalCount = 2;
+  int32 successCount = 3;
+  int32 failedCount = 4;
+}
+
+// ==================== AI智能出题 ====================
+
+message GenerateQuestionRequest {
+  string type = 1; // 题型
+  string knowledgePoint = 2;
+  string difficulty = 3; // 'easy' | 'medium' | 'hard'
+  string categoryId = 4;
+  string context = 5; // 题目上下文或要求
+}
+
+message GenerateByKnowledgeRequest {
+  string knowledgePointId = 1;
+  repeated QuestionTypeCount typeCounts = 2;
+  string difficulty = 3;
+}
+
+message QuestionTypeCount {
+  string type = 1;
+  int32 count = 2;
+}
+
+message QuestionResponse {
+  string type = 1;
+  string content = 2;
+  repeated string options = 3;
+  string answer = 4;
+  string explanation = 5;
+  string difficulty = 6;
+  string knowledgePoint = 7;
+}
+
+message QuestionListResponse {
+  repeated QuestionResponse questions = 1;
+  int32 totalCount = 2;
+}
+
+// ==================== AI资料解析 ====================
+
+message ParseDocumentRequest {
+  string documentId = 1;
+  string documentUrl = 2;
+  string documentType = 3; // 'pdf' | 'docx' | 'pptx' | 'image'
+  bool extractKnowledgePoints = 4;
+}
+
+message ParseDocumentResponse {
+  string documentId = 1;
+  string parsedContent = 2;
+  repeated Chapter chapters = 3;
+  repeated KnowledgePoint knowledgePoints = 4;
+  repeated KeyConcept keyConcepts = 5;
+  string summary = 6;
+}
+
+message Chapter {
+  string title = 1;
+  int32 level = 2;
+  string content = 3;
+  repeated Chapter subChapters = 4;
+}
+
+message KnowledgePoint {
+  string name = 1;
+  string description = 2;
+  string category = 3;
+  int32 importance = 4; // 1-5
+}
+
+message KeyConcept {
+  string term = 1;
+  string definition = 2;
+}
+
+message GenerateFromDocRequest {
+  string documentId = 1;
+  int32 questionCount = 2;
+  repeated QuestionTypeCount typeCounts = 3;
+  string difficulty = 4;
+}
+
+// ==================== AI对话答疑 ====================
+
+message ChatRequest {
+  string sessionId = 1;
+  string userId = 2;
+  string message = 3;
+  string context = 4; // 当前题目或学习内容
+  repeated ChatMessage history = 5;
+}
+
+message ChatMessage {
+  string role = 1; // 'user' | 'assistant'
+  string content = 2;
+  string timestamp = 3;
+}
+
+message ChatResponse {
+  string sessionId = 1;
+  string message = 2;
+  repeated string relatedQuestions = 3;
+  repeated string references = 4;
+}
+
+message ChatStreamResponse {
+  string sessionId = 1;
+  string chunk = 2;
+  bool isComplete = 3;
+}
+
+// ==================== AI学习路径推荐 ====================
+
+message RecommendPathRequest {
+  string userId = 1;
+  string categoryId = 2;
+  string targetLevel = 3; // 目标水平
+  int32 availableDays = 4; // 可用学习天数
+}
+
+message LearningPathResponse {
+  string pathId = 1;
+  string title = 2;
+  repeated LearningStage stages = 3;
+  int32 estimatedDays = 4;
+  string description = 5;
+}
+
+message LearningStage {
+  int32 order = 1;
+  string title = 2;
+  repeated string knowledgePointIds = 3;
+  repeated string recommendedQuestionIds = 4;
+  int32 estimatedHours = 5;
+  string goal = 6;
+}
+
+message RecommendQuestionsRequest {
+  string userId = 1;
+  string categoryId = 2;
+  int32 count = 3;
+  string recommendationType = 4; // 'weak_point' | 'review' | 'challenge'
+}
+
+// ==================== AI错题分析 ====================
+
+message AnalyzeWrongRequest {
+  string userId = 1;
+  repeated string wrongQuestionIds = 2;
+  string categoryId = 3;
+}
+
+message AnalysisResponse {
+  repeated KnowledgeGap knowledgeGaps = 1;
+  repeated string weakKnowledgePoints = 2;
+  string overallAnalysis = 3;
+  repeated string suggestions = 4;
+}
+
+message KnowledgeGap {
+  string knowledgePointId = 1;
+  string knowledgePointName = 2;
+  double masteryLevel = 3; // 0-1
+  int32 wrongCount = 4;
+  repeated string wrongQuestionIds = 5;
+}
+
+message DiagnoseRequest {
+  string userId = 1;
+  string categoryId = 2;
+}
+
+message DiagnosisResponse {
+  repeated KnowledgePointDiagnosis knowledgePoints = 1;
+  AbilityProfile abilityProfile = 2;
+  repeated string recommendations = 3;
+}
+
+message KnowledgePointDiagnosis {
+  string knowledgePointId = 1;
+  string name = 2;
+  string status = 3; // 'mastered' | 'learning' | 'weak' | 'unknown'
+  double masteryLevel = 4;
+  int32 practiceCount = 5;
+  double correctRate = 6;
+}
+
+message AbilityProfile {
+  double comprehension = 1; // 理解能力
+  double application = 2; // 应用能力
+  double analysis = 3; // 分析能力
+  double synthesis = 4; // 综合能力
+}
+
+// ==================== AI智能组卷 ====================
+
+message ComposeRequest {
+  string title = 1;
+  string categoryId = 2;
+  int32 totalScore = 3;
+  string difficulty = 4;
+  repeated QuestionTypeCount typeCounts = 5;
+  repeated string knowledgePointIds = 6;
+  bool considerStudentLevel = 7; // 是否考虑学生水平
+  string targetUserId = 8; // 目标学生ID（个性化组卷）
+}
+
+message PaperResponse {
+  string id = 1;
+  string title = 2;
+  repeated QuestionResponse questions = 3;
+  int32 totalScore = 4;
+  string difficulty = 5;
+  repeated string coveredKnowledgePoints = 6;
+}
+

@@ -1,0 +1,356 @@
+syntax = "proto3";
+
+package social;
+
+// 社交服务
+service SocialService {
+  // 排行榜
+  rpc GetRanking(GetRankingRequest) returns (RankingResponse);
+  rpc UpdateRanking(UpdateRankingRequest) returns (UpdateResponse);
+  
+  // PK对战
+  rpc CreateBattle(CreateBattleRequest) returns (BattleResponse);
+  rpc JoinBattle(JoinBattleRequest) returns (BattleResponse);
+  rpc GetBattle(GetBattleRequest) returns (BattleResponse);
+  rpc CompleteBattle(CompleteBattleRequest) returns (BattleResultResponse);
+  
+  // 讨论区
+  rpc CreatePost(CreatePostRequest) returns (PostResponse);
+  rpc GetPost(GetPostRequest) returns (PostResponse);
+  rpc GetPosts(GetPostsRequest) returns (PostListResponse);
+  rpc UpdatePost(UpdatePostRequest) returns (PostResponse);
+  rpc DeletePost(DeletePostRequest) returns (DeleteResponse);
+  
+  // 评论
+  rpc AddComment(AddCommentRequest) returns (CommentResponse);
+  rpc GetComments(GetCommentsRequest) returns (CommentListResponse);
+  rpc DeleteComment(DeleteCommentRequest) returns (DeleteResponse);
+  
+  // 点赞
+  rpc ToggleLike(ToggleLikeRequest) returns (LikeResponse);
+  
+  // 积分系统
+  rpc GetPoints(GetPointsRequest) returns (PointsResponse);
+  rpc AddPoints(AddPointsRequest) returns (PointsResponse);
+  rpc GetPointsHistory(PointsHistoryRequest) returns (PointsHistoryResponse);
+  
+  // 成就系统
+  rpc GetAchievements(GetAchievementsRequest) returns (AchievementsResponse);
+  rpc UnlockAchievement(UnlockAchievementRequest) returns (AchievementResponse);
+  
+  // 学习打卡
+  rpc CheckIn(CheckInRequest) returns (CheckInResponse);
+  rpc GetCheckInHistory(CheckInHistoryRequest) returns (CheckInHistoryResponse);
+}
+
+// ==================== 排行榜 ====================
+
+message GetRankingRequest {
+  string type = 1; // 'score' | 'study_time' | 'streak'
+  string categoryId = 2;
+  string timeRange = 3; // 'daily' | 'weekly' | 'monthly' | 'all_time'
+  int32 page = 4;
+  int32 limit = 5;
+}
+
+message RankingResponse {
+  repeated RankingItem items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message RankingItem {
+  int32 rank = 1;
+  string userId = 2;
+  string userName = 3;
+  string avatar = 4;
+  double score = 5;
+  int32 rankChange = 6;
+}
+
+message UpdateRankingRequest {
+  string userId = 1;
+  string type = 2;
+  double value = 3;
+}
+
+message UpdateResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// ==================== PK对战 ====================
+
+message CreateBattleRequest {
+  string userId = 1;
+  string categoryId = 2;
+  string mode = 3; // 'random' | 'invite'
+  int32 questionCount = 4;
+  int32 timeLimit = 5; // 秒
+}
+
+message JoinBattleRequest {
+  string battleId = 1;
+  string userId = 2;
+}
+
+message GetBattleRequest {
+  string battleId = 1;
+}
+
+message BattleResponse {
+  string id = 1;
+  string categoryId = 2;
+  string mode = 3;
+  int32 questionCount = 4;
+  int32 timeLimit = 5;
+  string status = 6; // 'waiting' | 'in_progress' | 'completed'
+  repeated BattleParticipant participants = 7;
+  repeated string questionIds = 8;
+  string createdAt = 9;
+  string startedAt = 10;
+  string completedAt = 11;
+}
+
+message BattleParticipant {
+  string userId = 1;
+  string userName = 2;
+  string avatar = 3;
+  int32 score = 4;
+  int32 correctCount = 5;
+  bool isReady = 6;
+}
+
+message CompleteBattleRequest {
+  string battleId = 1;
+  string userId = 2;
+  int32 score = 3;
+  int32 correctCount = 4;
+}
+
+message BattleResultResponse {
+  string battleId = 1;
+  string winnerId = 2;
+  repeated BattleParticipant finalScores = 3;
+  int32 pointsEarned = 4;
+}
+
+// ==================== 讨论区 ====================
+
+message CreatePostRequest {
+  string userId = 1;
+  string categoryId = 2;
+  string title = 3;
+  string content = 4;
+  repeated string tags = 5;
+  repeated string attachments = 6;
+}
+
+message GetPostRequest {
+  string postId = 1;
+}
+
+message GetPostsRequest {
+  string categoryId = 1;
+  string userId = 2;
+  string tag = 3;
+  string sortBy = 4; // 'latest' | 'hot' | 'likes'
+  int32 page = 5;
+  int32 limit = 6;
+}
+
+message PostResponse {
+  string id = 1;
+  string userId = 2;
+  string userName = 3;
+  string userAvatar = 4;
+  string categoryId = 5;
+  string title = 6;
+  string content = 7;
+  repeated string tags = 8;
+  repeated string attachments = 9;
+  int32 likeCount = 10;
+  int32 commentCount = 11;
+  int32 viewCount = 12;
+  bool isLiked = 13;
+  string createdAt = 14;
+  string updatedAt = 15;
+}
+
+message PostListResponse {
+  repeated PostResponse posts = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message UpdatePostRequest {
+  string postId = 1;
+  string userId = 2;
+  string title = 3;
+  string content = 4;
+  repeated string tags = 5;
+}
+
+message DeletePostRequest {
+  string postId = 1;
+  string userId = 2;
+}
+
+message DeleteResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// ==================== 评论 ====================
+
+message AddCommentRequest {
+  string userId = 1;
+  string postId = 2;
+  string content = 3;
+  string parentId = 4; // 回复评论时使用
+}
+
+message GetCommentsRequest {
+  string postId = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+message CommentResponse {
+  string id = 1;
+  string userId = 2;
+  string userName = 3;
+  string userAvatar = 4;
+  string postId = 5;
+  string content = 6;
+  string parentId = 7;
+  int32 likeCount = 8;
+  bool isLiked = 9;
+  repeated CommentResponse replies = 10;
+  string createdAt = 11;
+}
+
+message CommentListResponse {
+  repeated CommentResponse comments = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message DeleteCommentRequest {
+  string commentId = 1;
+  string userId = 2;
+}
+
+// ==================== 点赞 ====================
+
+message ToggleLikeRequest {
+  string userId = 1;
+  string targetId = 2; // postId or commentId
+  string targetType = 3; // 'post' | 'comment'
+}
+
+message LikeResponse {
+  bool isLiked = 1;
+  int32 likeCount = 2;
+}
+
+// ==================== 积分系统 ====================
+
+message GetPointsRequest {
+  string userId = 1;
+}
+
+message PointsResponse {
+  string userId = 1;
+  int32 totalPoints = 2;
+  int32 level = 3;
+  int32 nextLevelPoints = 4;
+  double progress = 5; // 0-1
+}
+
+message AddPointsRequest {
+  string userId = 1;
+  int32 points = 2;
+  string reason = 3; // 'exam_passed' | 'daily_check_in' | 'answer_correct' | 'post_liked'
+  string relatedId = 4;
+}
+
+message PointsHistoryRequest {
+  string userId = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+message PointsHistoryResponse {
+  repeated PointsRecord records = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message PointsRecord {
+  string id = 1;
+  string userId = 2;
+  int32 points = 3;
+  string reason = 4;
+  string relatedId = 5;
+  string createdAt = 6;
+}
+
+// ==================== 成就系统 ====================
+
+message GetAchievementsRequest {
+  string userId = 1;
+}
+
+message AchievementsResponse {
+  repeated AchievementResponse achievements = 1;
+  int32 totalUnlocked = 2;
+  int32 totalAchievements = 3;
+}
+
+message AchievementResponse {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string icon = 4;
+  string type = 5; // 'bronze' | 'silver' | 'gold' | 'platinum'
+  bool isUnlocked = 6;
+  double progress = 7; // 0-1
+  string unlockedAt = 8;
+}
+
+message UnlockAchievementRequest {
+  string userId = 1;
+  string achievementId = 2;
+}
+
+// ==================== 学习打卡 ====================
+
+message CheckInRequest {
+  string userId = 1;
+}
+
+message CheckInResponse {
+  bool success = 1;
+  int32 streak = 2; // 连续打卡天数
+  int32 pointsEarned = 3;
+  bool hasBonus = 4; // 是否有连续打卡奖励
+}
+
+message CheckInHistoryRequest {
+  string userId = 1;
+  string month = 2; // '2025-01'
+}
+
+message CheckInHistoryResponse {
+  string userId = 1;
+  int32 totalDays = 2;
+  int32 currentStreak = 3;
+  int32 longestStreak = 4;
+  repeated string checkedDates = 5; // ['2025-01-01', '2025-01-02']
+}
+

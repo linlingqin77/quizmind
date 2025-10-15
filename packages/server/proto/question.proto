@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package question;
+
+// 题目服务定义
+service QuestionService {
+  rpc Create(CreateQuestionRequest) returns (QuestionResponse);
+  rpc FindById(QuestionIdRequest) returns (QuestionResponse);
+  rpc List(ListQuestionsRequest) returns (ListQuestionsResponse);
+  rpc Update(UpdateQuestionRequest) returns (QuestionResponse);
+  rpc Delete(QuestionIdRequest) returns (DeleteResponse);
+  rpc FindByCategory(CategoryRequest) returns (ListQuestionsResponse);
+  rpc FindByDifficulty(DifficultyRequest) returns (ListQuestionsResponse);
+}
+
+// 请求消息
+message QuestionIdRequest {
+  string id = 1;
+}
+
+message CreateQuestionRequest {
+  string type = 1;
+  string content = 2;
+  string options = 3; // JSON string
+  string correctAnswer = 4;
+  string explanation = 5;
+  string categoryId = 6;
+  string difficulty = 7;
+  int32 score = 8;
+}
+
+message UpdateQuestionRequest {
+  string id = 1;
+  string content = 2;
+  string options = 3;
+  string correctAnswer = 4;
+  string explanation = 5;
+  string difficulty = 6;
+  int32 score = 7;
+}
+
+message ListQuestionsRequest {
+  int32 page = 1;
+  int32 limit = 2;
+  string type = 3;
+  string categoryId = 4;
+  string difficulty = 5;
+}
+
+message CategoryRequest {
+  string categoryId = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+message DifficultyRequest {
+  string difficulty = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+// 响应消息
+message QuestionResponse {
+  string id = 1;
+  string type = 2;
+  string content = 3;
+  string options = 4; // JSON string
+  string correctAnswer = 5;
+  string explanation = 6;
+  string categoryId = 7;
+  string difficulty = 8;
+  int32 score = 9;
+  string createdAt = 10;
+}
+
+message ListQuestionsResponse {
+  repeated QuestionResponse questions = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message DeleteResponse {
+  bool success = 1;
+  string message = 2;
+}
+

@@ -1,0 +1,301 @@
+syntax = "proto3";
+
+package analytics;
+
+// 分析服务
+service AnalyticsService {
+  // 学员成绩统计
+  rpc GetStudentStats(StudentStatsRequest) returns (StudentStatsResponse);
+  rpc GetStudentReport(StudentReportRequest) returns (StudentReportResponse);
+  
+  // 班级统计
+  rpc GetClassStats(ClassStatsRequest) returns (ClassStatsResponse);
+  rpc GetClassReport(ClassReportRequest) returns (ClassReportResponse);
+  
+  // 题目质量分析
+  rpc GetQuestionQuality(QuestionQualityRequest) returns (QuestionQualityResponse);
+  rpc GetQuestionDifficulty(QuestionDifficultyRequest) returns (QuestionDifficultyResponse);
+  
+  // 知识点掌握度分析
+  rpc GetKnowledgePointMastery(KnowledgeMasteryRequest) returns (KnowledgeMasteryResponse);
+  rpc GetAbilityRadar(AbilityRadarRequest) returns (AbilityRadarResponse);
+  
+  // 学习曲线
+  rpc GetLearningCurve(LearningCurveRequest) returns (LearningCurveResponse);
+  rpc GetProgressTrend(ProgressTrendRequest) returns (ProgressTrendResponse);
+  
+  // 排行榜
+  rpc GetRanking(RankingRequest) returns (RankingResponse);
+  
+  // 自定义报表
+  rpc GenerateReport(GenerateReportRequest) returns (ReportResponse);
+}
+
+// ==================== 学员统计 ====================
+
+message StudentStatsRequest {
+  string userId = 1;
+  string categoryId = 2;
+  string startDate = 3;
+  string endDate = 4;
+}
+
+message StudentStatsResponse {
+  string userId = 1;
+  int32 totalExams = 2;
+  int32 totalPractices = 3;
+  int32 totalQuestions = 4;
+  double averageScore = 5;
+  double correctRate = 6;
+  int32 totalStudyTime = 7; // 分钟
+  int32 rank = 8;
+  string level = 9; // 'beginner' | 'intermediate' | 'advanced' | 'expert'
+}
+
+message StudentReportRequest {
+  string userId = 1;
+  string categoryId = 2;
+  string reportType = 3; // 'weekly' | 'monthly' | 'overall'
+}
+
+message StudentReportResponse {
+  string userId = 1;
+  string userName = 2;
+  StudentStatsResponse stats = 3;
+  repeated KnowledgePointMastery knowledgePoints = 4;
+  AbilityRadar abilityRadar = 5;
+  LearningCurve learningCurve = 6;
+  repeated string weakPoints = 7;
+  repeated string strongPoints = 8;
+  repeated string recommendations = 9;
+}
+
+// ==================== 班级统计 ====================
+
+message ClassStatsRequest {
+  string classId = 1;
+  string categoryId = 2;
+}
+
+message ClassStatsResponse {
+  string classId = 1;
+  string className = 2;
+  int32 studentCount = 3;
+  double averageScore = 4;
+  double passRate = 5;
+  double excellentRate = 6; // 优秀率
+  repeated StudentRanking topStudents = 7;
+  repeated KnowledgePointStats knowledgePointStats = 8;
+}
+
+message ClassReportRequest {
+  string classId = 1;
+  string examId = 2;
+}
+
+message ClassReportResponse {
+  string classId = 1;
+  string className = 2;
+  ClassStatsResponse stats = 3;
+  repeated ScoreDistribution scoreDistribution = 4;
+  repeated QuestionAnalysis questionAnalysis = 5;
+  repeated string commonErrors = 6;
+  repeated string teachingSuggestions = 7;
+}
+
+message StudentRanking {
+  int32 rank = 1;
+  string userId = 2;
+  string userName = 3;
+  double score = 4;
+}
+
+message ScoreDistribution {
+  string range = 1; // '0-60', '60-70', '70-80', '80-90', '90-100'
+  int32 count = 2;
+  double percentage = 3;
+}
+
+message QuestionAnalysis {
+  string questionId = 1;
+  double correctRate = 2;
+  int32 totalAttempts = 3;
+  string difficulty = 4;
+  repeated string commonErrors = 5;
+}
+
+// ==================== 题目质量分析 ====================
+
+message QuestionQualityRequest {
+  string questionId = 1;
+}
+
+message QuestionQualityResponse {
+  string questionId = 1;
+  double correctRate = 2;
+  double discrimination = 3; // 区分度
+  double difficulty = 4; // 难度系数
+  int32 totalAttempts = 5;
+  string qualityLevel = 6; // 'excellent' | 'good' | 'fair' | 'poor'
+  repeated string suggestions = 7;
+}
+
+message QuestionDifficultyRequest {
+  repeated string questionIds = 1;
+}
+
+message QuestionDifficultyResponse {
+  repeated QuestionDifficultyItem items = 1;
+}
+
+message QuestionDifficultyItem {
+  string questionId = 1;
+  double difficultyScore = 2; // 0-1，越大越难
+  string difficultyLevel = 3; // 'easy' | 'medium' | 'hard'
+}
+
+// ==================== 知识点掌握度 ====================
+
+message KnowledgeMasteryRequest {
+  string userId = 1;
+  string categoryId = 2;
+}
+
+message KnowledgeMasteryResponse {
+  string userId = 1;
+  repeated KnowledgePointMastery knowledgePoints = 2;
+  double overallMastery = 3;
+}
+
+message KnowledgePointMastery {
+  string knowledgePointId = 1;
+  string knowledgePointName = 2;
+  double masteryLevel = 3; // 0-1
+  int32 practiceCount = 4;
+  double correctRate = 5;
+  string status = 6; // 'mastered' | 'learning' | 'weak' | 'unknown'
+}
+
+message AbilityRadarRequest {
+  string userId = 1;
+  string categoryId = 2;
+}
+
+message AbilityRadarResponse {
+  string userId = 1;
+  repeated AbilityDimension dimensions = 2;
+}
+
+message AbilityDimension {
+  string name = 1; // 'comprehension' | 'application' | 'analysis' | 'synthesis' | 'evaluation'
+  double score = 2; // 0-100
+  string level = 3; // 'weak' | 'fair' | 'good' | 'excellent'
+}
+
+// ==================== 学习曲线 ====================
+
+message LearningCurveRequest {
+  string userId = 1;
+  string categoryId = 2;
+  int32 days = 3; // 最近N天
+}
+
+message LearningCurveResponse {
+  string userId = 1;
+  repeated DailyProgress dailyProgress = 2;
+  TrendAnalysis trend = 3;
+}
+
+message DailyProgress {
+  string date = 1;
+  int32 questionCount = 2;
+  double correctRate = 3;
+  int32 studyTime = 4; // 分钟
+  double score = 5;
+}
+
+message TrendAnalysis {
+  string trend = 1; // 'improving' | 'stable' | 'declining'
+  double growthRate = 2; // 增长率
+  string suggestion = 3;
+}
+
+message ProgressTrendRequest {
+  string userId = 1;
+  string categoryId = 2;
+}
+
+message ProgressTrendResponse {
+  repeated WeeklyProgress weeklyProgress = 1;
+  repeated MonthlyProgress monthlyProgress = 2;
+}
+
+message WeeklyProgress {
+  string week = 1; // '2025-W01'
+  int32 questionCount = 2;
+  double averageCorrectRate = 3;
+  int32 totalStudyTime = 4;
+}
+
+message MonthlyProgress {
+  string month = 1; // '2025-01'
+  int32 questionCount = 2;
+  double averageScore = 3;
+  int32 examCount = 4;
+}
+
+// ==================== 排行榜 ====================
+
+message RankingRequest {
+  string categoryId = 1;
+  string rankType = 2; // 'score' | 'study_time' | 'question_count' | 'correct_rate'
+  string timeRange = 3; // 'daily' | 'weekly' | 'monthly' | 'all_time'
+  int32 limit = 4;
+}
+
+message RankingResponse {
+  string rankType = 1;
+  string timeRange = 2;
+  repeated RankingItem rankings = 3;
+  string updatedAt = 4;
+}
+
+message RankingItem {
+  int32 rank = 1;
+  string userId = 2;
+  string userName = 3;
+  string avatar = 4;
+  double value = 5; // 分数/时长/题数等
+  int32 rankChange = 6; // 排名变化
+}
+
+// ==================== 自定义报表 ====================
+
+message GenerateReportRequest {
+  string reportType = 1; // 'student' | 'class' | 'exam' | 'knowledge_point'
+  repeated string targetIds = 2;
+  string startDate = 3;
+  string endDate = 4;
+  repeated string metrics = 5; // 指标列表
+  string format = 6; // 'json' | 'excel' | 'pdf'
+}
+
+message ReportResponse {
+  string reportId = 1;
+  string reportType = 2;
+  string format = 3;
+  string downloadUrl = 4;
+  bytes data = 5; // 如果是json格式，直接返回数据
+  string createdAt = 6;
+}
+
+// ==================== 通用统计 ====================
+
+message KnowledgePointStats {
+  string knowledgePointId = 1;
+  string knowledgePointName = 2;
+  double averageCorrectRate = 3;
+  int32 totalAttempts = 4;
+  string masteryLevel = 5;
+}
+

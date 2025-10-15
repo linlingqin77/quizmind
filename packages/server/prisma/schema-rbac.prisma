@@ -1,0 +1,75 @@
+// RBAC 权限系统数据模型
+// 将这些模型添加到 schema.prisma 中
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique  // ADMIN, TEACHER, STUDENT
+  displayName String            // 显示名称
+  description String?           // 角色描述
+  isSystem    Boolean  @default(false)  // 是否系统角色（不可删除）
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 关系
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  resource    String            // 资源名称: user, question, exam
+  action      String            // 操作: create, read, update, delete
+  description String?           // 权限描述
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 关系
+  roles       RolePermission[]
+
+  @@unique([resource, action])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String     @id @default(cuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime   @default(now())
+
+  // 关系
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// 更新 User 模型，添加角色关系
+model User {
+  // ... 现有字段
+  roleId      String?
+  role        Role?      @relation(fields: [roleId], references: [id])
+  
+  // 自定义权限（覆盖角色权限）
+  customPermissions UserPermission[]
+}
+
+model UserPermission {
+  id           String     @id @default(cuid())
+  userId       String
+  permissionId String
+  granted      Boolean    @default(true)  // true=授予, false=撤销
+  createdAt    DateTime   @default(now())
+
+  // 关系
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permissionId])
+  @@map("user_permissions")
+}
+
+
+

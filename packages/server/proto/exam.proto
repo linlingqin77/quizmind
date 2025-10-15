@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package exam;
+
+// 考试服务定义
+service ExamService {
+  rpc Create(CreateExamRequest) returns (ExamResponse);
+  rpc FindById(ExamIdRequest) returns (ExamResponse);
+  rpc List(ListExamsRequest) returns (ListExamsResponse);
+  rpc Update(UpdateExamRequest) returns (ExamResponse);
+  rpc Delete(ExamIdRequest) returns (DeleteResponse);
+  rpc Start(StartExamRequest) returns (ExamRecordResponse);
+  rpc Submit(SubmitExamRequest) returns (ExamRecordResponse);
+}
+
+// 请求消息
+message ExamIdRequest {
+  string id = 1;
+}
+
+message CreateExamRequest {
+  string title = 1;
+  string description = 2;
+  int32 duration = 3;
+  float totalScore = 4;
+  string paperId = 5;
+  string startTime = 6;
+  string endTime = 7;
+}
+
+message UpdateExamRequest {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  int32 duration = 4;
+  string status = 5;
+}
+
+message ListExamsRequest {
+  int32 page = 1;
+  int32 limit = 2;
+  string status = 3;
+}
+
+message StartExamRequest {
+  string examId = 1;
+  string userId = 2;
+}
+
+message SubmitExamRequest {
+  string recordId = 1;
+  string answers = 2; // JSON string
+}
+
+// 响应消息
+message ExamResponse {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  int32 duration = 4;
+  float totalScore = 5;
+  string status = 6;
+  string startTime = 7;
+  string endTime = 8;
+  string createdAt = 9;
+}
+
+message ExamRecordResponse {
+  string id = 1;
+  string examId = 2;
+  string userId = 3;
+  float score = 4;
+  float totalScore = 5;
+  string status = 6;
+  string startTime = 7;
+  string endTime = 8;
+}
+
+message ListExamsResponse {
+  repeated ExamResponse exams = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message DeleteResponse {
+  bool success = 1;
+  string message = 2;
+}

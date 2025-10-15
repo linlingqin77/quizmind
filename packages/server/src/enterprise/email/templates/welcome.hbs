@@ -1,0 +1,87 @@
+{{!-- META: {"subject": "欢迎加入 {{appName}}！"} --}}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>欢迎加入</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .content {
+            padding: 30px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            border-top: 1px solid #f0f0f0;
+            color: #666;
+            font-size: 14px;
+        }
+        .features {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .features ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{appName}}</h1>
+    </div>
+    
+    <div class="content">
+        <h2>欢迎加入，{{username}}！</h2>
+        <p>感谢您注册 {{appName}}，我们很高兴您成为我们智能学习平台的一员。</p>
+        
+        <div class="features">
+            <h3>🎯 平台特色功能</h3>
+            <ul>
+                <li><strong>智能题库</strong> - 海量精选题目，覆盖各个知识点</li>
+                <li><strong>精准练习</strong> - AI推荐个性化练习内容</li>
+                <li><strong>错题集</strong> - 智能收集错题，针对性复习</li>
+                <li><strong>学习报告</strong> - 详细的学习数据分析</li>
+                <li><strong>在线考试</strong> - 模拟真实考试环境</li>
+            </ul>
+        </div>
+        
+        <p>现在就开始您的学习之旅吧：</p>
+        
+        <div style="text-align: center;">
+            <a href="{{loginUrl}}" class="button">立即开始学习</a>
+        </div>
+        
+        <p>如果您在使用过程中遇到任何问题，请随时联系我们的客服团队。</p>
+    </div>
+    
+    <div class="footer">
+        <p>此邮件由系统自动发送，请勿回复。</p>
+        <p>&copy; {{appName}} - 智能学习平台</p>
+    </div>
+</body>
+</html>

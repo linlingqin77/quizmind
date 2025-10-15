@@ -1,0 +1,124 @@
+groups:
+  - name: service_alerts
+    interval: 30s
+    rules:
+      # 服务不可用告警
+      - alert: ServiceDown
+        expr: up{job=~".*-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.service }} is down"
+          description: "Service {{ $labels.service }} at {{ $labels.instance }} has been down for more than 1 minute."
+
+      # 高错误率告警
+      - alert: HighErrorRate
+        expr: |
+          rate(http_requests_total{status_code=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate on {{ $labels.service }}"
+          description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.service }}."
+
+      # 高响应时间告警
+      - alert: HighResponseTime
+        expr: |
+          histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time on {{ $labels.service }}"
+          description: "95th percentile response time is {{ $value }}s on {{ $labels.service }}."
+
+      # gRPC调用失败告警
+      - alert: HighGrpcErrorRate
+        expr: |
+          rate(grpc_call_errors_total[5m]) / rate(grpc_calls_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High gRPC error rate on {{ $labels.service }}"
+          description: "gRPC error rate is {{ $value | humanizePercentage }} on {{ $labels.service }}.{{ $labels.method }}."
+
+      # 数据库连接池告警
+      - alert: DatabaseConnectionPoolLow
+        expr: db_connection_pool_size{state="idle"} < 2
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Database connection pool running low"
+          description: "Only {{ $value }} idle connections available in the pool."
+
+      # Redis连接失败告警
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+          description: "Redis instance is not responding."
+
+      # AI服务高延迟告警
+      - alert: AIServiceHighLatency
+        expr: |
+          histogram_quantile(0.95, rate(ai_request_duration_seconds_bucket[5m])) > 30
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AI service has high latency"
+          description: "95th percentile AI request duration is {{ $value }}s."
+
+      # 队列积压告警
+      - alert: QueueBacklog
+        expr: queue_size > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Queue {{ $labels.queue_name }} has high backlog"
+          description: "Queue size is {{ $value }}."
+
+  - name: system_alerts
+    interval: 30s
+    rules:
+      # 高CPU使用率
+      - alert: HighCPUUsage
+        expr: |
+          100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}."
+
+      # 高内存使用率
+      - alert: HighMemoryUsage
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is {{ $value }}% on {{ $labels.instance }}."
+
+      # 磁盘空间不足
+      - alert: DiskSpaceLow
+        expr: |
+          (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "Disk usage is {{ $value }}% on {{ $labels.instance }} mount {{ $labels.mountpoint }}."
+
