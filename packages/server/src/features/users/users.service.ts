@@ -1,5 +1,5 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { Role } from '@prisma/client';
 
@@ -41,7 +41,7 @@ export class UsersService {
         email: data.email,
         username: data.username,
         password: hashedPassword,
-        role: data.role || Role.STUDENT,
+        role: (typeof data.role === 'string' ? data.role : 'STUDENT') as any,
       },
       select: {
         id: true,

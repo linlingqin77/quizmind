@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as Consul from 'consul';
+import Consul from 'consul';
 
 /**
  * 服务注册中心
@@ -9,7 +9,7 @@ import * as Consul from 'consul';
 @Injectable()
 export class ServiceRegistry implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(ServiceRegistry.name);
-  private consul: Consul.Consul;
+  private consul: any;
   private serviceId: string;
 
   constructor(private configService: ConfigService) {

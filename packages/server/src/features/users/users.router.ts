@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { router, protectedProcedure } from '../trpc/trpc.service';
+import { router, protectedProcedure, adminProcedure } from '../../core/trpc/trpc';
 import { UsersService } from './users.service';
 
 @Injectable()

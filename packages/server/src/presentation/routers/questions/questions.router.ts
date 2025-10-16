@@ -1,8 +1,8 @@
 import { Injectable, Inject, OnModuleInit } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { z } from 'zod';
-import { router, protectedProcedure, adminProcedure } from '../../core/trpc/trpc';
-import { firstValueFrom } from 'rxjs';
+import { router, protectedProcedure, adminProcedure } from '../../../core/trpc/trpc';
+import { firstValueFrom, Observable } from 'rxjs';
 
 // Zod 验证 Schema
 const createQuestionSchema = z.object({
@@ -34,15 +34,23 @@ const listQuestionsSchema = z.object({
   difficulty: z.string().optional(),
 });
 
+// 分页结果类型
+interface PaginatedResult<T> {
+  data: T[];
+  page: number;
+  limit: number;
+  total: number;
+}
+
 // gRPC 服务接口
 interface QuestionService {
-  create(data: any): any;
-  findById(data: any): any;
-  list(data: any): any;
-  update(data: any): any;
-  delete(data: any): any;
-  findByCategory(data: any): any;
-  findByDifficulty(data: any): any;
+  create(data: any): Observable<any>;
+  findById(data: any): Observable<any>;
+  list(data: any): Observable<PaginatedResult<any>>;
+  update(data: any): Observable<any>;
+  delete(data: any): Observable<any>;
+  findByCategory(data: any): Observable<PaginatedResult<any>>;
+  findByDifficulty(data: any): Observable<PaginatedResult<any>>;
 }
 
 /**
@@ -65,7 +73,7 @@ export class QuestionsRouter implements OnModuleInit {
     create: adminProcedure
       .input(createQuestionSchema)
       .mutation(async ({ input }) => {
-        const result = await firstValueFrom(
+        const result: any = await firstValueFrom(
           this.questionService.create({
             type: input.type,
             content: input.content,
@@ -88,7 +96,7 @@ export class QuestionsRouter implements OnModuleInit {
     getById: protectedProcedure
       .input(z.object({ id: z.string() }))
       .query(async ({ input }) => {
-        const result = await firstValueFrom(
+        const result: any = await firstValueFrom(
           this.questionService.findById({ id: input.id })
         );
         
@@ -110,10 +118,10 @@ export class QuestionsRouter implements OnModuleInit {
             categoryId: input.categoryId || '',
             difficulty: input.difficulty || '',
           })
-        );
+        ) as PaginatedResult<any>;
         
         return {
-          questions: result.questions.map((q: any) => ({
+          questions: result.data.map((q: any) => ({
             ...q,
             options: JSON.parse(q.options || '{}'),
           })),
@@ -130,7 +138,7 @@ export class QuestionsRouter implements OnModuleInit {
     update: adminProcedure
       .input(updateQuestionSchema)
       .mutation(async ({ input }) => {
-        const result = await firstValueFrom(
+        const result: any = await firstValueFrom(
           this.questionService.update({
             id: input.id,
             content: input.content || '',
@@ -152,7 +160,7 @@ export class QuestionsRouter implements OnModuleInit {
     delete: adminProcedure
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
-        const result = await firstValueFrom(
+        const result: any = await firstValueFrom(
           this.questionService.delete({ id: input.id })
         );
         
@@ -173,10 +181,10 @@ export class QuestionsRouter implements OnModuleInit {
             page: input.page,
             limit: input.limit,
           })
-        );
+        ) as PaginatedResult<any>;
         
         return {
-          questions: result.questions.map((q: any) => ({
+          questions: result.data.map((q: any) => ({
             ...q,
             options: JSON.parse(q.options || '{}'),
           })),
@@ -203,10 +211,10 @@ export class QuestionsRouter implements OnModuleInit {
             page: input.page,
             limit: input.limit,
           })
-        );
+        ) as PaginatedResult<any>;
         
         return {
-          questions: result.questions.map((q: any) => ({
+          questions: result.data.map((q: any) => ({
             ...q,
             options: JSON.parse(q.options || '{}'),
           })),

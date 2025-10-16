@@ -123,8 +123,8 @@ export class MetricsService {
   /**
    * 获取 Prometheus 格式的指标
    */
-  getPrometheusMetrics(): string {
-    return register.metrics();
+  async getPrometheusMetrics(): Promise<string> {
+    return await register.metrics();
   }
 
   /**

@@ -5,7 +5,7 @@ import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
 import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { JaegerExporter } from '@opentelemetry/exporter-jaeger';
 import { Resource } from '@opentelemetry/resources';
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
+import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
 
 /**
  * Jaeger链路追踪服务
@@ -35,16 +35,20 @@ export class JaegerTracerService implements OnModuleInit {
     });
 
     // 创建追踪器提供者
-    this.provider = new NodeTracerProvider({
-      resource: new Resource({
-        [SemanticResourceAttributes.SERVICE_NAME]: serviceName,
-        [SemanticResourceAttributes.SERVICE_VERSION]: this.configService.get('APP_VERSION', '1.0.0'),
+    const resource: any = {
+      attributes: {
+        [ATTR_SERVICE_NAME]: serviceName,
+        [ATTR_SERVICE_VERSION]: this.configService.get('APP_VERSION', '1.0.0'),
         environment: this.configService.get('NODE_ENV', 'development'),
-      }),
+      },
+    };
+    
+    this.provider = new NodeTracerProvider({
+      resource: resource as any,
     });
 
     // 添加处理器
-    this.provider.addSpanProcessor(new SimpleSpanProcessor(exporter));
+    (this.provider as any).addSpanProcessor(new SimpleSpanProcessor(exporter));
 
     // 注册全局追踪器
     this.provider.register();

@@ -28,7 +28,7 @@ export class AuthRouter {
     register: publicProcedure
       .input(registerSchema)
       .mutation(async ({ input }) => {
-        return this.authService.register(input);
+        return this.authService.register(input as any);
       }),
 
     // 登录

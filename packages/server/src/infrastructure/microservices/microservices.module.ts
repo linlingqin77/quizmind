@@ -18,7 +18,7 @@ import { join } from 'path';
           transport: Transport.GRPC,
           options: {
             package: 'user',
-            protoPath: join(__dirname, '../../../proto/user.proto'),
+            protoPath: join(__dirname, '../../../../proto/user.proto'),
             url: configService.get('USER_SERVICE_URL', 'localhost:50051'),
             loader: {
               keepCase: true,
@@ -38,7 +38,7 @@ import { join } from 'path';
           transport: Transport.GRPC,
           options: {
             package: 'exam',
-            protoPath: join(__dirname, '../../../proto/exam.proto'),
+            protoPath: join(__dirname, '../../../../proto/exam.proto'),
             url: configService.get('EXAM_SERVICE_URL', 'localhost:50052'),
             loader: {
               keepCase: true,
@@ -58,7 +58,7 @@ import { join } from 'path';
           transport: Transport.GRPC,
           options: {
             package: 'question',
-            protoPath: join(__dirname, '../../../proto/question.proto'),
+            protoPath: join(__dirname, '../../../../proto/question.proto'),
             url: configService.get('QUESTION_SERVICE_URL', 'localhost:50053'),
             loader: {
               keepCase: true,

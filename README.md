@@ -160,40 +160,48 @@ graph TB
 
 ---
 
-### 📱 移动端技术栈
+### 📱 移动端技术栈（Expo 架构）
 
 #### **核心框架**
 | 技术 | 版本 | 用途 | 选型理由 |
 |------|------|------|---------|
-| **React Native** | 0.82 | 跨平台移动框架 | 📱 一次开发、双端运行、原生性能、热更新 |
-| **TypeScript** | 5.3 | 类型系统 | 🛡️ 类型安全、减少运行时错误 |
-| **React** | 18.2 | UI 库 | ⚛️ 组件化、Hooks、生态丰富 |
+| **Expo** | ~54.0.0 | React Native 开发平台 | 🎯 简化配置、自动化构建、OTA 更新、丰富的原生 API |
+| **Expo Router** | ~4.0.0 | 文件系统路由 | 📁 自动路由生成、类型安全、深度链接、代码分割 |
+| **React** | 19.1.0 | UI 库 | ⚛️ 组件化、Hooks、并发特性 |
+| **React Native** | 0.81.4 | 跨平台框架 | 📱 一次开发、双端运行、原生性能 |
+| **TypeScript** | 5.9.2 | 类型系统 | 🛡️ 类型安全、IDE 智能提示、减少运行时错误 |
 
 #### **状态管理 & 数据获取**
 | 技术 | 版本 | 用途 | 选型理由 |
 |------|------|------|---------|
-| **Redux Toolkit** | 2.0 | 全局状态管理 | 📦 简化 Redux、内置 Immer、DevTools |
-| **React Query** | 5.0 | 服务端状态管理 | 🔄 缓存、重试、轮询、自动更新 |
-| **tRPC Client** | 10.45 | API 调用 | 🔗 类型安全、自动补全、端到端类型 |
+| **Redux Toolkit** | 2.5.0 | 客户端状态管理 | 📦 简化 Redux、内置 Immer、DevTools、TypeScript 友好 |
+| **React Query** | 5.90.3 | 服务端状态缓存 | 🔄 自动缓存、重试、轮询、后台更新、乐观更新 |
+| **tRPC Client** | 10.45.2 | 类型安全 API | 🔗 端到端类型安全、自动补全、无需代码生成 |
 
 #### **路由 & 导航**
 | 技术 | 版本 | 用途 | 选型理由 |
 |------|------|------|---------|
-| **React Navigation** | 6.0 | 导航框架 | 🧭 Stack/Tab/Drawer 导航、深度链接 |
+| **Expo Router** | ~4.0.0 | 文件系统路由 | 🧭 约定式路由、自动类型、深度链接、Universal Links |
 
-#### **UI 组件库**
+#### **存储 & 安全**
 | 技术 | 版本 | 用途 | 选型理由 |
 |------|------|------|---------|
-| **React Native Paper** | 5.11 | Material Design 组件 | 🎨 Material 3、主题化、可访问性 |
-| **React Native Vector Icons** | 10.0 | 图标库 | 🎯 丰富图标、自定义颜色、多套图标集 |
-| **React Native SVG** | 14.0 | SVG 渲染 | 🖼️ 矢量图形、图表、动画 |
+| **Expo Secure Store** | ~14.0.0 | 加密存储 | 🔐 iOS Keychain、Android KeyStore、敏感数据加密 |
+| **AsyncStorage** | 1.24.0 | 本地存储 | 💾 非敏感数据、持久化、键值对存储 |
+
+#### **UI 组件**
+| 技术 | 版本 | 用途 | 选型理由 |
+|------|------|------|---------|
+| **Expo Vector Icons** | 14.0.0 | 图标库 | 🎨 丰富图标集、Ionicons、Material Icons、FontAwesome |
+| **自定义组件** | - | 业务组件 | 🧩 统一主题、可复用、类型安全 |
 
 #### **开发工具**
 | 技术 | 版本 | 用途 | 选型理由 |
 |------|------|------|---------|
-| **Metro** | 0.80 | 打包工具 | 📦 React Native 官方打包器、热更新 |
-| **Babel** | 7.23 | JavaScript 编译器 | 🔄 新语法转换、插件生态 |
-| **Jest** | 29.7 | 测试框架 | ✅ 快照测试、覆盖率报告 |
+| **Metro** | - | 打包工具 | 📦 Expo 内置、快速刷新、模块解析 |
+| **Babel** | 7.25 | JavaScript 编译器 | 🔄 路径别名、新语法转换、插件生态 |
+| **Jest** | 29.7 | 测试框架 | ✅ 单元测试、快照测试、覆盖率报告 |
+| **EAS Build** | - | 云端构建 | ☁️ 自动化构建、多配置管理、CI/CD 集成 |
 
 ---
 
@@ -370,7 +378,8 @@ pnpm run start:dev
 
 # 7. 启动移动端（新终端）
 cd ../mobile
-pnpm run ios  # 或 pnpm run android
+pnpm start     # 启动 Expo 开发服务器
+# 然后按 'i' 启动 iOS，按 'a' 启动 Android，按 'w' 启动 Web
 ```
 
 ### 访问地址
@@ -463,30 +472,58 @@ quizmind/
 │   │   │
 │   │   └── package.json
 │   │
-│   ├── mobile/                          # 📱 React Native 移动端
-│   │   ├── src/
-│   │   │   ├── screens/               # 页面
-│   │   │   │   ├── auth/             # 登录注册
-│   │   │   │   ├── exam/             # 考试
-│   │   │   │   ├── practice/         # 练习
-│   │   │   │   └── profile/          # 个人中心
+│   ├── mobile/                          # 📱 Expo 移动端（已迁移至 Expo 架构）
+│   │   ├── app/                       # Expo Router 路由（文件系统路由）
+│   │   │   ├── _layout.tsx           # 根布局 + Provider + 认证守卫
+│   │   │   ├── index.tsx             # 应用入口（自动重定向）
 │   │   │   │
-│   │   │   ├── components/            # 组件
-│   │   │   │   ├── common/           # 通用组件
-│   │   │   │   └── exam/             # 考试组件
+│   │   │   ├── auth/                 # 认证模块
+│   │   │   │   ├── _layout.tsx      # 认证布局
+│   │   │   │   ├── login.tsx        # 登录页面
+│   │   │   │   └── register.tsx     # 注册页面
 │   │   │   │
-│   │   │   ├── navigation/            # 导航
-│   │   │   ├── store/                # Redux Store
-│   │   │   ├── services/             # API 服务
-│   │   │   │   ├── trpc.ts          # tRPC 客户端
-│   │   │   │   └── api.ts           # API 封装
-│   │   │   │
-│   │   │   ├── hooks/                # 自定义 Hooks
-│   │   │   ├── utils/                # 工具函数
-│   │   │   └── types/                # TypeScript 类型
+│   │   │   └── (tabs)/               # Tab 导航（主应用）
+│   │   │       ├── _layout.tsx      # Tab 布局配置
+│   │   │       ├── index.tsx        # 首页
+│   │   │       ├── practice.tsx     # 练习页
+│   │   │       ├── exams.tsx        # 考试页
+│   │   │       └── profile.tsx      # 个人中心
 │   │   │
-│   │   ├── android/                   # Android 原生代码
-│   │   ├── ios/                       # iOS 原生代码
+│   │   ├── src/                      # 源代码
+│   │   │   ├── components/          # UI 组件
+│   │   │   │   └── common/         # 通用组件（Button 等）
+│   │   │   │
+│   │   │   ├── constants/           # 常量配置
+│   │   │   │   └── index.ts        # API_CONFIG, THEME, STORAGE_KEYS
+│   │   │   │
+│   │   │   ├── hooks/               # 自定义 Hooks
+│   │   │   │   └── useAuth.ts      # 认证 Hook
+│   │   │   │
+│   │   │   ├── services/            # 服务层
+│   │   │   │   └── trpc.ts         # tRPC 客户端配置
+│   │   │   │
+│   │   │   ├── store/               # Redux Store
+│   │   │   │   ├── index.ts        # Store 配置 + 自定义 Hooks
+│   │   │   │   └── slices/         # State Slices
+│   │   │   │       └── authSlice.ts # 认证状态
+│   │   │   │
+│   │   │   ├── types/               # TypeScript 类型定义
+│   │   │   │   └── index.ts        # 公共类型
+│   │   │   │
+│   │   │   └── utils/               # 工具函数
+│   │   │       ├── storage.ts      # 存储工具（Secure Store + AsyncStorage）
+│   │   │       ├── validators.ts   # 验证工具
+│   │   │       └── formatters.ts   # 格式化工具
+│   │   │
+│   │   ├── assets/                  # 静态资源
+│   │   │   ├── icon.png
+│   │   │   ├── splash-icon.png
+│   │   │   └── adaptive-icon.png
+│   │   │
+│   │   ├── app.config.js            # Expo 配置（动态）
+│   │   ├── babel.config.js          # Babel 配置（路径别名）
+│   │   ├── metro.config.js          # Metro Bundler 配置
+│   │   ├── tsconfig.json            # TypeScript 配置
 │   │   └── package.json
 │   │
 │   └── shared/                          # 📦 共享类型库
@@ -666,12 +703,24 @@ release/* - 发布分支
 
 ## 📚 文档导航
 
+### 📱 移动端文档（Expo）
 | 文档 | 说明 | 适合人群 |
 |------|------|---------|
-| [📱 前端完整开发指南](./docs/前端完整开发指南.md) | React Native 移动端开发 | 前端开发者 |
+| [📱 移动端完整开发指南](./docs/移动端完整开发指南.md) | Expo + Expo Router 完整开发手册 | 移动端开发者 |
+| [🚀 移动端快速开始](./docs/移动端快速开始.md) | 快速启动和基础使用 | 新手开发者 |
+| [🔄 移动端迁移指南](./docs/移动端迁移指南.md) | React Native CLI 到 Expo 的迁移 | 架构师 |
+| [📊 移动端重构总结](./docs/移动端重构总结.md) | 重构过程和技术决策 | 技术负责人 |
+
+### 🚀 服务端文档
+| 文档 | 说明 | 适合人群 |
+|------|------|---------|
 | [🚀 服务端完整开发指南](./docs/服务端完整开发指南.md) | NestJS 微服务架构 | 后端开发者 |
 | [🏗️ 架构设计文档](./docs/服务端文档/ARCHITECTURE.md) | 系统架构、技术选型 | 架构师 |
 | [📊 监控系统指南](./docs/服务端文档/MONITORING_GUIDE.md) | 监控部署、告警配置 | 运维工程师 |
+
+### 📋 项目管理文档
+| 文档 | 说明 | 适合人群 |
+|------|------|---------|
 | [📋 产品需求文档](./docs/产品需求文档/产品需求文档(PRD).md) | 完整产品需求 | 产品经理 |
 | [🎯 项目管理与排期](./docs/项目管理与排期.md) | 开发计划、里程碑 | 项目经理 |
 
@@ -752,6 +801,7 @@ release/* - 发布分支
 **Made with ❤️ by QuizMind Development Team**
 
 **版本：** v1.0.0  
-**最后更新：** 2025-10-15
+**最后更新：** 2025-10-16  
+**移动端架构：** ✨ 已迁移至 Expo + Expo Router
 
 </div>

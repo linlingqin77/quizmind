@@ -16,8 +16,8 @@ export class MetricsController {
    */
   @Get()
   @Header('Content-Type', 'text/plain')
-  getMetrics(): string {
-    return this.metricsService.getPrometheusMetrics();
+  async getMetrics(): Promise<string> {
+    return await this.metricsService.getPrometheusMetrics();
   }
 
   /**

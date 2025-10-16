@@ -51,7 +51,7 @@ export class AuthService {
       email: data.email,
       username: data.username,
       password: hashedPassword,
-      role: Role.STUDENT, // 默认角色为学员
+      role: 'STUDENT', // 默认角色为学员
     });
 
     // 5. 生成 Token

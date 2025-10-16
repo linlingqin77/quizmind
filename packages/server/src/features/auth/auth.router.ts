@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { router, publicProcedure, protectedProcedure } from '../trpc/trpc.service';
+import { router, publicProcedure, protectedProcedure } from '../../core/trpc/trpc';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 
@@ -40,7 +40,7 @@ export class AuthRouter {
     register: publicProcedure
       .input(registerSchema)
       .mutation(async ({ input }) => {
-        return this.authService.register(input);
+        return this.authService.register(input as any);
       }),
 
     // 登录

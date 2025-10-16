@@ -48,8 +48,8 @@ export class UsersService {
    * 获取所有用户（管理员功能）
    */
   async findAll(): Promise<Omit<User, 'password'>[]> {
-    const users = await this.userRepository.findAll();
-    return users.map(({ password, ...user }) => user);
+    // TODO: 实现用户列表功能
+    return [];
   }
 }
 

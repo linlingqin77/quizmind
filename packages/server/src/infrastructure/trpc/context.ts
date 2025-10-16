@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
+import { UsersService } from '../../features/users/users.service';
 
 export type Context = {
   user?: any;

@@ -9,7 +9,7 @@ import {
   Body,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { RequirePermissions } from '../../shared/decorators/permissions.decorator';
 import { Audit } from '../../shared/interceptors/audit.interceptor';
@@ -154,7 +154,7 @@ export class QueueController {
     days?: number;
     delay?: number;
   }) {
-    const job = QueueJobFactory.createCleanupJob(body.type, body.days);
+    const job: any = QueueJobFactory.createCleanupJob(body.type, body.days);
     
     if (body.delay) {
       job.delay = body.delay;

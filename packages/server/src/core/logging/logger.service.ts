@@ -1,7 +1,8 @@
 import { Injectable, LoggerService as NestLoggerService } from '@nestjs/common';
 import * as winston from 'winston';
-import * as DailyRotateFile from 'winston-daily-rotate-file';
+import DailyRotateFile from 'winston-daily-rotate-file';
 import { AsyncLocalStorage } from 'async_hooks';
+const chalk = require('chalk');
 
 /**
  * 企业级日志服务
@@ -40,14 +41,62 @@ export class CustomLoggerService implements NestLoggerService {
       transports.push(
         new winston.transports.Console({
           format: winston.format.combine(
-            winston.format.colorize(),
-            winston.format.printf(({ timestamp, level, message, context, ...meta }) => {
-              const requestId = this.getRequestId();
-              const ctx = context ? `[${context}]` : '';
-              const reqId = requestId ? `[${requestId}]` : '';
-              return `${timestamp} ${level} ${ctx}${reqId}: ${message} ${
-                Object.keys(meta).length ? JSON.stringify(meta) : ''
-              }`;
+            winston.format.printf((info) => {
+              const { level, message, context, requestId, metadata, timestamp, ...meta } = info;
+              
+              // 过滤掉内部元数据
+              const filteredMeta = { ...meta };
+              delete filteredMeta.service;
+              delete filteredMeta.env;
+              
+              // 格式化时间戳
+              const ts = timestamp || new Date().toISOString().replace('T', ' ').substring(0, 19);
+              const timeStr = chalk.gray(ts);
+              
+              // 根据日志级别设置颜色
+              let levelStr = '';
+              let msgColor = chalk.white;
+              
+              switch (level) {
+                case 'error':
+                  levelStr = chalk.red.bold('ERROR');
+                  msgColor = chalk.red;
+                  break;
+                case 'warn':
+                  levelStr = chalk.yellow.bold('WARN ');
+                  msgColor = chalk.yellow;
+                  break;
+                case 'info':
+                  levelStr = chalk.green.bold('INFO ');
+                  msgColor = chalk.white;
+                  break;
+                case 'debug':
+                  levelStr = chalk.blue.bold('DEBUG');
+                  msgColor = chalk.blue;
+                  break;
+                case 'verbose':
+                  levelStr = chalk.cyan.bold('VERB ');
+                  msgColor = chalk.cyan;
+                  break;
+                default:
+                  levelStr = chalk.white(level.toUpperCase().padEnd(5));
+              }
+              
+              // 格式化上下文
+              const ctx = context ? chalk.magenta(`[${context}]`) : '';
+              
+              // 格式化请求ID
+              const reqId = requestId ? chalk.cyan(`[${String(requestId).substring(0, 8)}]`) : '';
+              
+              // 格式化消息（保留 emoji）
+              const msg = msgColor(message);
+              
+              // 格式化元数据
+              const metaStr = Object.keys(filteredMeta).length 
+                ? chalk.gray(` ${JSON.stringify(filteredMeta)}`) 
+                : '';
+              
+              return `${timeStr} ${levelStr} ${ctx}${reqId}: ${msg}${metaStr}`;
             }),
           ),
         }),

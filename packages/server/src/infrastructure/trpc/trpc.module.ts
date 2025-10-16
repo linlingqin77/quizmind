@@ -3,9 +3,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TRPCService } from './trpc.service';
 import { TRPCContext } from './context';
-import { AppRouter } from './trpc.router';
-import { UsersModule } from '../users/users.module';
-import { AuthModule } from '../auth/auth.module';
+import { UsersModule } from '../../features/users/users.module';
+import { AuthModule } from '../../features/auth/auth.module';
 
 @Module({
   imports: [
@@ -22,8 +21,8 @@ import { AuthModule } from '../auth/auth.module';
       inject: [ConfigService],
     }),
   ],
-  providers: [TRPCService, TRPCContext, AppRouter],
-  exports: [TRPCContext, AppRouter],
+  providers: [TRPCService, TRPCContext],
+  exports: [TRPCContext],
 })
 export class TRPCModule {}
 

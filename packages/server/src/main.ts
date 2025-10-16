@@ -3,14 +3,15 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import * as trpcExpress from '@trpc/server/adapters/express';
-import { TRPCContext } from './core/trpc/context';
+import { TRPCContext } from './infrastructure/trpc/context';
 import { AppRouter } from './presentation/routers/app.router';
 import { HttpExceptionFilter } from './shared/filters/http-exception.filter';
 import { RequestLoggingInterceptor } from './shared/interceptors/request-logging.interceptor';
 import { CustomLoggerService } from './core/logging/logger.service';
 import { SentryService } from './core/monitoring/sentry.service';
+import { setupSwagger } from './core/swagger/swagger.config';
 import helmet from 'helmet';
-import * as compression from 'compression';
+import compression from 'compression';
 
 async function bootstrap() {
   // 使用自定义日志服务
@@ -74,7 +75,7 @@ async function bootstrap() {
   app.use(
     '/api/trpc',
     trpcExpress.createExpressMiddleware({
-      router: appRouter.appRouter,
+      router: appRouter.appRouter as any,
       createContext: (opts) => trpcContext.create(opts),
     }),
   );
@@ -95,6 +96,11 @@ async function bootstrap() {
     // 检查数据库连接、Redis 等
     res.json({ status: 'ready' });
   });
+
+  // Swagger API 文档（仅在非生产环境启用）
+  if (configService.get('app.nodeEnv') !== 'production') {
+    setupSwagger(app);
+  }
 
   // 优雅关闭
   const gracefulShutdown = async (signal: string) => {
@@ -125,6 +131,7 @@ async function bootstrap() {
 📡 端点信息：
    - 服务地址: http://localhost:${port}
    - tRPC API: http://localhost:${port}/api/trpc
+   - Swagger文档: http://localhost:${port}/api/docs
    - 健康检查: http://localhost:${port}/api/health
    - 就绪探针: http://localhost:${port}/api/ready
   

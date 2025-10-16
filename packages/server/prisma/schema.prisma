@@ -37,6 +37,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   lastLoginAt DateTime?
+  deletedAt DateTime?  // 软删除时间戳
   
   // 关联关系
   examRecords    ExamRecord[]

@@ -318,7 +318,7 @@ export class EmailService {
       },
     };
 
-    this.transporter = nodemailer.createTransporter(smtpConfig);
+    this.transporter = nodemailer.createTransport(smtpConfig);
 
     // 验证连接
     try {

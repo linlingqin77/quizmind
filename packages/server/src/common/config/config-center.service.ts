@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as Consul from 'consul';
+import Consul from 'consul';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 interface ConfigWatcher {
@@ -16,7 +16,7 @@ interface ConfigWatcher {
 @Injectable()
 export class ConfigCenterService implements OnModuleInit {
   private readonly logger = new Logger(ConfigCenterService.name);
-  private consul: Consul.Consul;
+  private consul: any;
   private watchers: Map<string, ConfigWatcher> = new Map();
   private configCache: Map<string, string> = new Map();
   private watchIntervals: Map<string, NodeJS.Timer> = new Map();
@@ -184,7 +184,7 @@ export class ConfigCenterService implements OnModuleInit {
   unwatch(key: string) {
     const interval = this.watchIntervals.get(key);
     if (interval) {
-      clearInterval(interval);
+      clearInterval(interval as any);
       this.watchIntervals.delete(key);
     }
     
@@ -244,7 +244,7 @@ export class ConfigCenterService implements OnModuleInit {
    */
   async onModuleDestroy() {
     // 停止所有监听
-    this.watchIntervals.forEach((interval) => clearInterval(interval));
+    this.watchIntervals.forEach((interval) => clearInterval(interval as any));
     this.watchIntervals.clear();
     this.watchers.clear();
   }

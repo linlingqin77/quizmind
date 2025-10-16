@@ -1,5 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRedis } from '@liaoliaots/nestjs-redis';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import Redis from 'ioredis';
 
 interface RateLimitRule {
@@ -25,7 +24,7 @@ interface RateLimitResult {
 export class RateLimiterService {
   private readonly logger = new Logger(RateLimiterService.name);
 
-  constructor(@InjectRedis() private readonly redis: Redis) {}
+  constructor(@Inject('REDIS_CLIENT') private readonly redis: Redis) {}
 
   /**
    * 滑动窗口限流算法

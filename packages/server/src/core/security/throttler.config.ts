@@ -5,9 +5,13 @@ import { ThrottlerModuleOptions } from '@nestjs/throttler';
  * 防止暴力攻击和 DDoS
  */
 export const throttlerConfig: ThrottlerModuleOptions = {
-  // 全局限流：60秒内最多100个请求
-  ttl: 60,
-  limit: 100,
+  throttlers: [
+    {
+      // 全局限流：60秒内最多100个请求
+      ttl: 60000, // 毫秒
+      limit: 100,
+    },
+  ],
 };
 
 /**

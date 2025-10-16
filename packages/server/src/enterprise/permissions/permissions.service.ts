@@ -17,10 +17,10 @@ export class PermissionsService {
     resource: string,
     action: string,
   ): Promise<boolean> {
-    const user = await this.prisma.user.findUnique({
+    const user: any = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {
-        role: {
+        rbacRole: {
           include: {
             permissions: {
               include: {
@@ -49,9 +49,9 @@ export class PermissionsService {
     }
 
     // 2. 检查角色权限
-    const rolePermissions = user.role?.permissions || [];
+    const rolePermissions = user.rbacRole?.permissions || [];
     return rolePermissions.some(
-      (rp) => rp.permission.resource === resource && rp.permission.action === action,
+      (rp: any) => rp.permission.resource === resource && rp.permission.action === action,
     );
   }
 
@@ -59,10 +59,10 @@ export class PermissionsService {
    * 获取用户所有权限
    */
   async getUserPermissions(userId: string): Promise<string[]> {
-    const user = await this.prisma.user.findUnique({
+    const user: any = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {
-        role: {
+        rbacRole: {
           include: {
             permissions: {
               include: {

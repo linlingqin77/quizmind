@@ -32,7 +32,7 @@ export function setupSwagger(app: INestApplication): void {
     .addTag('queue', '任务队列')
     .addTag('health', '健康检查')
     .addTag('metrics', '应用指标')
-    .addServer('http://localhost:3001', '本地开发环境')
+    .addServer('http://localhost:3000', '本地开发环境')
     .addServer('https://api.example.com', '生产环境')
     .build();
 
@@ -53,5 +53,5 @@ export function setupSwagger(app: INestApplication): void {
     `,
   });
 
-  console.log('📚 Swagger文档已启动: http://localhost:3001/api/docs');
+  console.log('📚 Swagger文档已启动: http://localhost:3000/api/docs');
 }

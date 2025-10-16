@@ -4,8 +4,11 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "webpack": true,
-    "tsConfigPath": "tsconfig.json"
+    "webpack": false,
+    "tsConfigPath": "tsconfig.json",
+    "assets": [
+      "proto/**/*.proto"
+    ]
   }
 }
 

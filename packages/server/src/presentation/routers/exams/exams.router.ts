@@ -2,7 +2,7 @@ import { Injectable, Inject, OnModuleInit } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { z } from 'zod';
 import { router, protectedProcedure, adminProcedure } from '../../../core/trpc/trpc';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 
 // ✅ 导入所有 Schema（干净整洁）
 import {
@@ -13,15 +13,23 @@ import {
   submitExamSchema,
 } from './schemas';
 
+// 分页结果类型
+interface PaginatedResult<T> {
+  data: T[];
+  page: number;
+  limit: number;
+  total: number;
+}
+
 // gRPC 服务接口定义
 interface ExamService {
-  create(data: any): any;
-  findById(data: any): any;
-  list(data: any): any;
-  update(data: any): any;
-  delete(data: any): any;
-  start(data: any): any;
-  submit(data: any): any;
+  create(data: any): Observable<any>;
+  findById(data: any): Observable<any>;
+  list(data: any): Observable<any>;
+  update(data: any): Observable<any>;
+  delete(data: any): Observable<any>;
+  start(data: any): Observable<any>;
+  submit(data: any): Observable<any>;
 }
 
 /**
@@ -80,7 +88,7 @@ export class ExamsRouter implements OnModuleInit {
     list: protectedProcedure
       .input(listExamsSchema)
       .query(async ({ input }) => {
-        const result = await firstValueFrom(
+        const result: any = await firstValueFrom(
           this.examService.list({
             page: input.page,
             limit: input.limit,
@@ -89,12 +97,12 @@ export class ExamsRouter implements OnModuleInit {
         );
         
         return {
-          exams: result.exams,
+          exams: result.exams || result.data || [],
           pagination: {
-            page: result.page,
-            limit: result.limit,
-            total: result.total,
-            pages: Math.ceil(result.total / result.limit),
+            page: result.page || input.page,
+            limit: result.limit || input.limit,
+            total: result.total || 0,
+            pages: Math.ceil((result.total || 0) / (result.limit || input.limit)),
           },
         };
       }),

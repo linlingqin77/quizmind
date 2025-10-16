@@ -16,7 +16,7 @@ export class GrpcClientFactory {
       transport: Transport.GRPC,
       options: {
         package: 'user',
-        protoPath: join(__dirname, '../../../proto/user.proto'),
+        protoPath: join(__dirname, '../../../../proto/user.proto'),
         url: process.env.USER_SERVICE_URL || 'localhost:50051',
       },
     }) as ClientGrpcProxy;
@@ -30,7 +30,7 @@ export class GrpcClientFactory {
       transport: Transport.GRPC,
       options: {
         package: 'exam',
-        protoPath: join(__dirname, '../../../proto/exam.proto'),
+        protoPath: join(__dirname, '../../../../proto/exam.proto'),
         url: process.env.EXAM_SERVICE_URL || 'localhost:50052',
       },
     }) as ClientGrpcProxy;
@@ -44,7 +44,7 @@ export class GrpcClientFactory {
       transport: Transport.GRPC,
       options: {
         package: 'question',
-        protoPath: join(__dirname, '../../../proto/question.proto'),
+        protoPath: join(__dirname, '../../../../proto/question.proto'),
         url: process.env.QUESTION_SERVICE_URL || 'localhost:50053',
       },
     }) as ClientGrpcProxy;

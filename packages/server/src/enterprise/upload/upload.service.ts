@@ -4,11 +4,11 @@ import { PrismaService } from '../../core/database/prisma.service';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import * as sharp from 'sharp';
+import sharp from 'sharp';
 
 export interface UploadConfig {
   maxSize: number; // 最大文件大小（字节）
-  allowedMimeTypes: string[]; // 允许的MIME类型
+  allowedMimeTypes: readonly string[] | string[]; // 允许的MIME类型
   category: string; // 文件分类
   isPublic?: boolean; // 是否公开访问
   generateThumbnail?: boolean; // 是否生成缩略图
@@ -174,9 +174,9 @@ export class UploadService {
       await fs.unlink(file.path);
 
       // 删除缩略图（如果存在）
-      if (file.metadata && file.metadata.thumbnailPath) {
+      if (file.metadata && (file.metadata as any).thumbnailPath) {
         try {
-          await fs.unlink(file.metadata.thumbnailPath);
+          await fs.unlink((file.metadata as any).thumbnailPath);
         } catch {}
       }
 

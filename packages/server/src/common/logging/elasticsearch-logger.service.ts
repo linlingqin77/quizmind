@@ -283,15 +283,13 @@ export class ElasticsearchLoggerService implements NestLoggerService {
    */
   async searchLogs(query: any, from: number = 0, size: number = 100) {
     try {
-      const result = await this.elasticsearchClient.search({
+      const result: any = await this.elasticsearchClient.search({
         index: `${this.indexPrefix}-*`,
-        body: {
-          from,
-          size,
-          query,
-          sort: [{ timestamp: { order: 'desc' } }],
-        },
-      });
+        from,
+        size,
+        query,
+        sort: [{ timestamp: { order: 'desc' } }],
+      } as any);
       
       return result.hits.hits.map(hit => hit._source);
     } catch (error) {
@@ -323,7 +321,7 @@ export class ElasticsearchLoggerService implements NestLoggerService {
    */
   async onModuleDestroy() {
     if (this.flushTimer) {
-      clearInterval(this.flushTimer);
+      clearInterval(this.flushTimer as any);
     }
     
     // 刷新剩余日志

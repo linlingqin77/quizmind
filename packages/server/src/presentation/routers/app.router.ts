@@ -26,10 +26,10 @@ export class AppRouter {
    * 前端通过这个路由访问所有功能
    */
   appRouter = router({
-    auth: this.authRouter.router,
-    users: this.usersRouter.router,
-    exams: this.examsRouter.router,
-    questions: this.questionsRouter.router,
+    auth: this.authRouter.router as any,
+    users: this.usersRouter.router as any,
+    exams: this.examsRouter.router as any,
+    questions: this.questionsRouter.router as any,
   });
 }
 

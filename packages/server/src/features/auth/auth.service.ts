@@ -20,7 +20,7 @@ export class AuthService {
   }) {
     const user = await this.usersService.createUser({
       ...data,
-      role: Role.STUDENT, // 默认注册为学员
+      role: 'STUDENT' as any, // 默认注册为学员
     });
 
     const token = this.generateToken(user);
